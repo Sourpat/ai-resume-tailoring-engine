@@ -18,3 +18,9 @@ Tests vector store retrieval.
 Runs the entire tailoring pipeline using a sample JD.
 
 Logs are printed to console for debugging.
+
+## Export Formats
+- DOCX via python-docx
+- PDF via reportlab
+- Markdown via string generation
+- All exported formats returned as base64 for frontend download

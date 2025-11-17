@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 
-from routers import export, tailor, test_routes, upload
+from routers import admin, export, tailor, test_routes, upload
 from vector_store.ingest import build_initial_vector_store
 
 load_dotenv()
@@ -17,6 +17,7 @@ app = FastAPI(title="AI Resume Tailoring Engine")
 app.include_router(upload.router)
 app.include_router(tailor.router)
 app.include_router(export.router)
+app.include_router(admin.router)
 app.include_router(test_routes.router, prefix="/test")
 
 

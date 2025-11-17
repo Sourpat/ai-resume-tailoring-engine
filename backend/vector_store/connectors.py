@@ -2,6 +2,8 @@ import json
 import os
 from typing import Any, Dict, List, Optional
 
+from services.embedding_service import EmbeddingService
+
 import numpy as np
 
 
@@ -11,6 +13,7 @@ class VectorDBConnector:
     def __init__(self, db_path: Optional[str] = None) -> None:
         self.db_path = db_path or os.path.join(os.path.dirname(__file__), "local_vector_db.json")
         self.vectors: List[Dict[str, Any]] = []
+        self.embedding_service = EmbeddingService()
         self.load_local_db()
 
     def load_local_db(self) -> None:
@@ -28,6 +31,18 @@ class VectorDBConnector:
     def add_vector(self, item: Dict[str, Any]) -> None:
         """Add a vector item to the in-memory store."""
         self.vectors.append(item)
+
+    def add_documents(self, documents: List[str]) -> None:
+        """Embed and add a batch of text documents to the store."""
+        starting_length = len(self.vectors)
+        for index, document in enumerate(documents):
+            embedding = self.embedding_service.embed_text(document)
+            item = {
+                "id": f"doc_{starting_length + index}",
+                "content": document,
+                "embedding": embedding,
+            }
+            self.add_vector(item)
 
     def query_vectors(self, query_embedding: List[float], top_k: int = 5) -> List[Dict[str, Any]]:
         """Return the ``top_k`` vectors ranked by cosine similarity."""

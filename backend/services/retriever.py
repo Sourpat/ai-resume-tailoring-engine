@@ -11,9 +11,11 @@ load_dotenv()
 
 client = OpenAI()
 
-SEED_DIR = Path(__file__).resolve().parent.parent / "seeds"
+BASE_DIR = Path(__file__).resolve().parents[2]
+SEED_DIR = BASE_DIR / "backend" / "seeds"
 SEED_DIR.mkdir(parents=True, exist_ok=True)
-VECTOR_STORE_PATH = Path(__file__).resolve().parent.parent / "vector_store"
+print("Resolved SEED_DIR:", SEED_DIR)
+VECTOR_STORE_PATH = BASE_DIR / "backend" / "vector_store"
 
 class Retriever:
     @staticmethod

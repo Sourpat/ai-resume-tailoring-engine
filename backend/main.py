@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 
-from routers import admin, debug, export, tailor, test_routes, upload
+from routers import admin, debug, debug_ingest, export, tailor, test_routes, upload
 from vector_store.ingest import build_initial_vector_store
 
 load_dotenv()
@@ -19,6 +19,7 @@ app.include_router(tailor.router)
 app.include_router(export.router)
 app.include_router(admin.router)
 app.include_router(debug.router)
+app.include_router(debug_ingest.router, prefix="/debug")
 app.include_router(test_routes.router, prefix="/test")
 
 

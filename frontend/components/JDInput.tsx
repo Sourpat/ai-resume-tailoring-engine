@@ -21,15 +21,19 @@ const JDInput = ({ onChange, initialValue = '' }: JDInputProps) => {
   };
 
   return (
-    <div>
-      <label htmlFor="jd-text">Job Description</label>
+    <div className="space-y-2">
+      <label htmlFor="jd-text" className="text-sm font-semibold text-gray-800">
+        Job Description
+      </label>
       <textarea
         id="jd-text"
         value={jdText}
         onChange={handleChange}
-        rows={6}
+        rows={8}
         placeholder="Paste the job description here"
+        className="w-full rounded-lg border border-gray-200 bg-white p-3 text-sm text-gray-800 shadow-sm focus:border-blue-400 focus:outline-none focus:ring focus:ring-blue-200"
       />
+      <p className="text-xs text-gray-500">Include responsibilities, requirements, and preferred skills.</p>
     </div>
   );
 };

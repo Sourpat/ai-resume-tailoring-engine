@@ -1,3 +1,13 @@
 {
-    "fields": ["id", "role", "content", "embedding"]
+  "description": "Schema for vector database storage of resume seeds",
+  "fields": {
+    "id": "string",
+    "role": "string",
+    "content": "string",
+    "embedding": "list<float>"
+  },
+  "index": {
+    "metric": "cosine",
+    "dimensions": 1536
+  }
 }

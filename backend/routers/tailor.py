@@ -1,4 +1,4 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
 from services.agent_orchestrator import AgentOrchestrator
@@ -13,4 +13,9 @@ class TailorRequest(BaseModel):
 @router.post("/tailor")
 async def tailor_resume(payload: TailorRequest):
     orchestrator = AgentOrchestrator()
-    return orchestrator.run_pipeline(payload.jd_text)
+    result = orchestrator.run_pipeline(payload.jd_text)
+
+    if result.get("error"):
+        raise HTTPException(status_code=500, detail=result["details"])
+
+    return result

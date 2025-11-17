@@ -27,6 +27,24 @@ class Retriever:
         return response.data[0].embedding
 
     @staticmethod
+    def chunk_text(text: str, chunk_size: int = 700, overlap: int = 100) -> List[str]:
+        if chunk_size <= overlap:
+            raise ValueError("chunk_size must be greater than overlap")
+
+        chunks = []
+        start = 0
+        text_length = len(text)
+
+        while start < text_length:
+            end = start + chunk_size
+            chunks.append(text[start:end])
+            if end >= text_length:
+                break
+            start = end - overlap
+
+        return chunks
+
+    @staticmethod
     def load_seed_documents() -> List[dict]:
         documents = []
         for file in sorted(SEED_DIR.glob("*.txt")):
@@ -48,27 +66,29 @@ class Retriever:
         VECTOR_STORE_DIR.mkdir(parents=True, exist_ok=True)
 
         index = []
+        total_chunks = 0
         for path in sorted(SEED_DIR.glob("*.txt")):
             text = path.read_text(encoding="utf-8")
             if len(text) < 5:
                 continue
 
-            print("Embedding file:", path.name)
-            embedding = client.embeddings.create(
-                model="text-embedding-3-large",
-                input=text
-            )
-            print("Embedding length:", len(embedding.data[0].embedding))
+            chunks = Retriever.chunk_text(text)
+            print(f"Embedding file: {path.name} -> {len(chunks)} chunks")
+            total_chunks += len(chunks)
 
-            index.append({
-                "file": path.name,
-                "content": text,
-                "embedding": embedding.data[0].embedding
-            })
+            for chunk_index, chunk_text in enumerate(chunks):
+                embedding = Retriever.embed_text(chunk_text)
+                index.append({
+                    "file": path.name,
+                    "chunk_index": chunk_index,
+                    "chunk_text": chunk_text,
+                    "embedding": embedding,
+                })
 
         with open(INDEX_PATH, "w", encoding="utf-8") as f:
             json.dump(index, f, indent=2)
 
+        print(f"Total chunks stored: {total_chunks}")
         print(f"Vector store built with {len(index)} items")
 
     @staticmethod
@@ -106,9 +126,13 @@ class Retriever:
 
             return dot / (norm_a * norm_b)
 
-        ranked = sorted(
-            vectors,
-            key=lambda x: cosine_similarity(query_vector, x.get("embedding", [])),
-            reverse=True,
-        )
+        ranked = []
+        for item in vectors:
+            similarity = cosine_similarity(query_vector, item.get("embedding", []))
+            ranked.append({
+                **item,
+                "similarity": similarity,
+            })
+
+        ranked.sort(key=lambda x: x["similarity"], reverse=True)
         return ranked[:5]

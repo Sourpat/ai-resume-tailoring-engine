@@ -1,0 +1,18 @@
+Goal: Extract structured insights from the Job Description.
+
+Output Format:
+{
+  "role_title": "",
+  "primary_responsibilities": [],
+  "required_skills": [],
+  "preferred_skills": [],
+  "tools_mentioned": [],
+  "soft_skills": [],
+  "seniority_level": "",
+  "JD_summary": ""
+}
+
+Rules:
+- Keep lists concise.
+- Extract only relevant, actionable requirements.
+- Do NOT generate resume content here.

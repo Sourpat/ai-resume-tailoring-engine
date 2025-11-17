@@ -1,0 +1,14 @@
+Goal: Structure final output for DOCX, PDF, Markdown exports.
+
+Output Format:
+{
+  "docx_structure": "",
+  "pdf_structure": "",
+  "md_structure": ""
+}
+
+Rules:
+- Include clear section headers
+- Preserve ATS formatting
+- Keep Markdown lightweight
+- Provide full text for export agents to consume

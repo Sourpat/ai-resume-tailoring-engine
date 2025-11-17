@@ -8,6 +8,12 @@ class RAGService:
         self.embedding_service = EmbeddingService()
 
     def retrieve(self, query: str = ""):
+        if not self.db.vectors:
+            return {
+                "matches": [],
+                "info": "Vector DB empty or no seeds matched",
+            }
+
         query_embedding = self.embedding_service.embed_text(query)
         results = self.db.query_vectors(query_embedding, top_k=5)
 
@@ -19,5 +25,11 @@ class RAGService:
             }
             for item in results
         ]
+
+        if not matches:
+            return {
+                "matches": [],
+                "info": "Vector DB empty or no seeds matched",
+            }
 
         return {"matches": matches}

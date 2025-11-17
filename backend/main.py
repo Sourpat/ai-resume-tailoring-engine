@@ -5,6 +5,7 @@ from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 
 from routers import export, tailor, test_routes, upload
+from vector_store.ingest import build_initial_vector_store
 
 load_dotenv()
 
@@ -17,6 +18,15 @@ app.include_router(upload.router)
 app.include_router(tailor.router)
 app.include_router(export.router)
 app.include_router(test_routes.router, prefix="/test")
+
+
+@app.on_event("startup")
+async def startup_event():
+    try:
+        build_initial_vector_store()
+        print("Vector store initialized successfully.")
+    except Exception as e:
+        print("Vector store failed to initialize:", e)
 
 
 @app.get("/")

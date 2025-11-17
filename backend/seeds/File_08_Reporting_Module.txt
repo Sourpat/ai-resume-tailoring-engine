@@ -1,0 +1,301 @@
+FILE 08 — REPORTING MODULE BLUEPRINT
+1. Problem Summary
+
+The existing Reporting module had several gaps:
+
+Confusion between creating vs modifying reports
+
+Recurring report logic unclear (scheduling, date ranges, email flow)
+
+Some filters did not apply depending on report type
+
+Users had to redo all steps even to change one field
+
+Limited visibility into status of scheduled reports
+
+No clear failure notifications
+
+Complex multi-step flows without guidance
+
+Inconsistent international behavior (dates, language, data sources)
+
+This resulted in low adoption, high support tickets, and poor user confidence in the reporting system.
+
+2. Business Objectives
+
+Provide a modern, flexible self-service reporting suite for customers.
+
+Allow creation, modification, scheduling, and management of reports with minimal friction.
+
+Simplify multi-step flows with clear guidance and validation.
+
+Ensure report types respect applicable filters (date, product category, location, etc.).
+
+Improve transparency with statuses, notifications, and failure visibility.
+
+Enable automation via recurring reports sent via email or in-app notifications.
+
+Reduce reliance on account reps for data pulls.
+
+3. Functional Design
+3.1 Distinct Flows: Create vs Modify
+
+The new design clearly differentiates:
+
+Create New Report
+
+Step A → Select report type
+
+Step B → Apply filters
+
+Step C → Schedule (recurring)
+
+Step D → Delivery preferences (email, in-app)
+
+Modify Existing Report
+
+Same form, but pre-populated
+
+Users can update only the steps they change
+
+Other fields remain untouched
+
+Some fields locked (e.g., report type if not changeable)
+
+This reduced user friction dramatically.
+
+3.2 Contextual Filter Logic
+
+Different report types need different filters.
+
+Examples:
+
+Spend reports → require date range
+
+eCatalog usage reports → date range should be disabled
+
+Product usage report → category filter required
+
+Shipping report → location filter required
+
+The UI dynamically adapts:
+
+Shows only relevant filters
+
+Hides or disables irrelevant ones
+
+Provides helper text explaining rules
+
+This reduced errors and made forms intuitive.
+
+3.3 Validation Framework
+
+Robust validation ensures accurate submission:
+
+Required filters must be filled before “Continue”
+
+Tooltips explain what’s missing
+
+Custom date ranges validated (start cannot be in past for recurring)
+
+Recurring schedules checked for validity
+
+Report names must be unique
+
+You also added inline guidance:
+
+“Custom Date Range requires both start and end.”
+
+“Recurring report start date cannot be earlier than today.”
+
+3.4 Email & Delivery Preferences
+
+Users can:
+
+Receive reports by email
+
+Add additional recipients (if allowed)
+
+Receive only in-app notifications
+
+Download reports from portal once generated
+
+You also designed:
+
+success email templates
+
+failure email templates
+
+secure file delivery via link (for large files)
+
+3.5 Saved Reports Management View
+
+The updated “My Reports” page includes:
+
+Last Run Status: Success / Failed
+
+Next Scheduled Run
+
+Frequency
+
+Delivery method
+
+Report type
+
+Actions available:
+
+Run Now
+
+Edit
+
+Delete
+
+Deletion includes confirmation to prevent accidental loss.
+
+4. Technical Implementation
+4.1 Report Generation Service
+
+You enhanced backend architecture to support:
+
+asynchronous generation
+
+scheduled recurring jobs
+
+pulling data from DB, JDE, or data warehouse
+
+multiple data sources per report type
+
+Recurring jobs use:
+
+cron scheduler
+
+job queue
+
+stored schedule metadata
+
+Ensures:
+
+no duplicates
+
+no conflicting runs
+
+scalable execution
+
+4.2 Handling Large Data & Failures
+
+Large reports may time out.
+
+Your solution:
+
+Async job
+
+Status tracking in DB
+
+Retry logic (configurable)
+
+Failure path:
+
+log failure
+
+mark run as failed
+
+send failure notification
+
+allow user to rerun manually
+
+Strong failure design increased trust and transparency.
+
+4.3 Modify vs Create — Technical Workflow
+
+Modify uses:
+
+GET /report/{id}/configuration
+
+Returns full parameters:
+
+{
+  "type": "Spend",
+  "filters": { ... },
+  "frequency": "Monthly",
+  "startDate": "2024-01-01",
+  "emailRecipients": ["abc@company.com"]
+}
+
+
+Modify submission uses same endpoint as create:
+
+POST /report
+
+But with an identifier for update.
+
+This ensures:
+
+minimal code duplication
+
+consistent behavior
+
+4.4 Email System Integration
+
+Reports send via:
+
+attachment (small reports)
+
+secure downloadable link (large files)
+
+System handles:
+
+template selection
+
+per-locale language variations
+
+expiration of links
+
+large file storage
+
+4.5 Data Sourcing & Query Optimization
+
+You worked with analytics/DB teams to:
+
+ensure queries are optimized
+
+avoid production load spikes
+
+use read replicas
+
+archive older data efficiently
+
+Important for customers generating heavy reports like annual spend.
+
+4.6 Time Zone, Locale, and Multi-Market Behavior
+
+You ensured:
+
+date formats adapt (US vs CA vs UK)
+
+languages supported (en-US, en-CA, fr-CA)
+
+currencies formatted properly
+
+future EU markets easily pluggable
+
+This standardization was critical for GenX/GenY rollouts.
+
+5. Stakeholders Involved
+
+Product Managers → prioritized report types
+
+SMEs & Office Managers → gave real-world use cases
+
+Data Analytics Team → data mapping, queries
+
+Deloitte Development Team → front-end & middleware
+
+Backend Services & JDE Team → data source validations
+
+UX Designers → step wizard, cleaner flows
+
+QA Engineers → tested large combinations
+
+International market leads → localization requirements
+
+Your coordination ensured reliable implementation across markets.

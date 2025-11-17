@@ -1,0 +1,314 @@
+FILE 10 — PROFILE & PREFERENCES MODULE BLUEPRINT
+1. Problem Summary
+
+The Profile & Preferences section suffered from:
+
+confusing layout and settings scattered across multiple areas
+
+hard-to-find profile image upload
+
+unclear or inconsistent checkout preference behavior
+
+inability to reliably set default payment/shipping methods
+
+security gaps in credential updates (no verification step)
+
+no lockout mechanism after repeated incorrect password attempts
+
+disjointed UX for personal vs organizational preferences
+
+missing guardrails for organizations with restricted payment methods
+
+These issues led to user frustration, support tickets, and potential security risks.
+
+2. Business Objectives
+
+Provide a clean, intuitive way to manage account, contact, checkout, and preference settings.
+
+Improve checkout speed with Express Checkout defaults.
+
+Increase account security with credential re-verification, lockout rules, and better UX.
+
+Improve discoverability of profile image, preferences, and organization-level restrictions.
+
+Make the entire settings area modern, trusted, organized, and scalable across markets.
+
+Ensure preferences adapt dynamically based on organizational policies (BOA vs CC-only, etc.).
+
+3. Functional Design
+3.1 Express Checkout Setup (Default Payment & Shipping)
+
+A major upgrade.
+
+Users can set:
+
+Default shipping address
+
+Default payment method
+
+Default delivery preferences (if applicable)
+
+Role-based behavior:
+
+Organization Admins can set defaults for the whole org or specific locations.
+
+Location Users can only set defaults for their own permitted locations.
+
+Smart UI behavior:
+
+Restricted methods automatically hidden or disabled.
+
+Tooltip example:
+“This payment method is restricted by your organization administrator.”
+
+Payment method dropdown reflects user + org + market rules.
+
+Checkout integration:
+
+Checkout automatically picks defaults but allows override.
+
+If a default is deleted (admin removes card), the system gracefully resets the default.
+
+3.2 Credential Update with Security Verification
+
+You redesigned the security flow around sensitive changes:
+
+Before allowing user to:
+
+change password
+
+update email
+
+change username
+
+change recovery information
+
+→ The system requires confirmation via:
+
+current password check
+
+OR future MFA (planned)
+
+Password verification step:
+
+Users must re-enter their current password.
+
+If incorrect → show attempts remaining.
+
+After 3 failed attempts → lock this action temporarily.
+
+Purpose:
+
+Prevent unauthorized access on shared devices.
+
+Align with security best practices.
+
+3.3 3-Strike Lockout Rule (Security Enhancement)
+
+You introduced:
+
+lockout after 3 failed credential change attempts
+
+configurable lockout timer
+
+clear messaging
+
+logs recorded for security audits
+
+Example message:
+
+“Profile editing is temporarily locked due to multiple incorrect attempts. Try again in 15 minutes.”
+
+This gave admins and customers confidence in the platform’s security posture.
+
+3.4 Improved Profile Image Management
+
+The previous image upload was buried and inconsistent.
+
+You redesigned it:
+
+Moved to Contact Information section
+
+Clear “Upload / Change / Delete Photo” actions
+
+Added inline validations:
+
+supported formats (JPG, PNG)
+
+max file size
+
+dimension check
+
+Added image preview & auto-thumbnail generation
+
+This modernized the user experience.
+
+3.5 Cleaned Up UI Structure
+
+You introduced a clear grouping:
+
+Category 1: Personal Information
+
+name
+
+email
+
+phone
+
+profile image
+
+Category 2: Security & Credentials
+
+username
+
+password
+
+recovery info
+
+verification/lockout logic
+
+Category 3: Checkout Preferences
+
+default shipping address
+
+default payment method
+
+default delivery preferences
+
+Category 4: Notifications & Communication Preferences
+
+(depending on market)
+
+Category 5: Localization
+
+language selection (en-US, en-CA, fr-CA, en-UK)
+
+This grouping brought clarity and improved discoverability.
+
+4. Technical Implementation
+4.1 Express Checkout Data Flow
+
+Backend updates included:
+
+added fields in user profile schema:
+
+defaultPaymentMethodId
+
+defaultAddressId
+
+API:
+PUT /user/{id}/defaults
+
+backend performs:
+
+permission validation
+
+payment method validation
+
+organization rules check
+
+Checkout consumption:
+
+checkout module reads defaults
+
+overrides allowed at runtime
+
+4.2 Enforcing Organization-Level Restrictions
+
+Organizations can restrict:
+
+payment methods
+
+shipping methods
+
+credit vs BOA rules
+
+Backend now:
+
+fetches allowed methods from JDE / customer settings
+
+filters results before sending to frontend
+
+double-checks on save to prevent API manipulation
+
+This ensures users cannot select a method their org prohibits.
+
+4.3 Security Implementation (Password Gating)
+
+Workflow:
+
+Frontend POSTs to /user/verifyPassword
+
+Backend checks credentials with auth provider
+
+On success → allow credential change
+
+On failure → increment counter & enforce lockout if needed
+
+Lockout:
+
+stored in DB or session cache
+
+enforced server-side (cannot bypass via API)
+
+returns timed lockout response
+
+4.4 Profile Photo Storage & Retrieval
+
+Implementation supports:
+
+secure storage (cloud bucket or DB blob)
+
+file scanning (optional)
+
+thumbnails
+
+deletion via backend
+
+URL tokenization for secure retrieval
+
+4.5 Backward Compatibility & Migration
+
+You ensured:
+
+old users with no defaults continue smoothly
+
+old data merged to new schema without breaking checkout
+
+fallback logic if defaults deleted
+
+4.6 Global Behavior & Localization
+
+French/English support for Canada
+
+UK locale support for GENX
+
+language-based labels and help text
+
+date/time formatting aligned with locale
+
+5. Stakeholders & Teams
+
+The Profile & Preferences module involved:
+
+UX team → UI restructuring, image management, default selectors
+
+Security team → password gating and lockout rules
+
+Deloitte (Front-end + API) → implementing UI + service changes
+
+JDE/ERP team → mapping allowed payment methods
+
+Product Owners → design decisions & rule clarifications
+
+QA/UAT → scenario testing across:
+
+restricted accounts
+
+CC-only accounts
+
+multiple locations
+
+various user roles
+
+Internal business stakeholders appreciated the improved clarity & reduced training load.

@@ -1,0 +1,262 @@
+FILE 07 — STATEMENTS & PAYMENTS MODULE BLUEPRINT
+1. Problem Summary
+
+The Statements & Payments module initially created friction for customers due to:
+
+Confusing AutoPay enrollment behavior
+
+Inconsistent account eligibility logic
+
+Poor error messages (raw JDE codes shown to users)
+
+No grouping of failure types
+
+Partial/one-time payment workflow complexity
+
+Lack of clarity when paying multiple statements
+
+UI that didn’t adapt to account types (BOA vs CC-only)
+
+No failure transparency (users didn’t know what went wrong)
+
+These issues increased support calls, delayed payments, and created a poor financial management experience for customers.
+
+2. Business Objectives
+
+Simplify AutoPay enrollment and prevent invalid/duplicate enrollment attempts.
+
+Redesign one-time payment flow for full + partial + multi-statement payments.
+
+Replace confusing ERP/JDE error messages with grouped, user-friendly messaging.
+
+Improve confirmation, receipts, and user trust in payment processes.
+
+Encourage adoption of AutoPay to improve cash flow & reduce DSO.
+
+Reduce support burden by making errors self-explanatory.
+
+Ensure payment flows align with JDE rules & financial policy constraints.
+
+3. Functional Design
+3.1 AutoPay Enrollment Enhancements
+Key improvements include:
+
+Accounts already enrolled in AutoPay do not appear in the selection list.
+
+Default filter: Show Unenrolled Accounts Only (ON).
+
+Clear explanation of what AutoPay means (e.g., automatic charge on due date).
+
+When enrollment succeeds:
+
+show green confirmation
+
+move account from “unenrolled” into “enrolled” view real-time
+
+Inline eligibility checks:
+
+e.g., some account types cannot join AutoPay
+
+payment types restricted by company policy
+
+Prevent duplicate enrollment attempts.
+
+UX examples:
+
+Disabled account tile → “Already enrolled in AutoPay.”
+
+Tooltip → “This account is not eligible for AutoPay.”
+
+These changes cut user confusion drastically.
+
+3.2 One-Time Payment Flow (Make a Payment)
+
+A redesigned modal supports:
+
+full statement payment
+
+partial payment
+
+paying multiple statements at once
+
+Smart Defaults
+
+Selecting one statement → auto-fill “Amount = Full Balance”.
+
+Selecting multiple → sum of full balances pre-filled.
+
+User can edit each amount individually.
+
+Validation Enhancements
+
+Cannot enter an amount greater than balance.
+
+Cannot enter negative or empty fields.
+
+Pay button disabled until:
+
+valid card/bank info
+
+valid amounts
+
+required credentials filled
+
+Review & Confirm Step
+
+Summary before final submission
+
+Prevents accidental wrong payments
+
+Especially important for multi-statement payments
+
+3.3 Error Message Overhaul (Major Improvement)
+
+You transformed cryptic JDE codes into meaningful, grouped categories.
+
+Category Mapping Examples
+Category	Example JDE Error	User Message
+ACCOUNT_ISSUE	Invalid STMT, blocked account	“Your account needs attention — please verify details with Customer Service.”
+PAYMENT_METHOD_ERROR	Card decline, expired card	“Payment failed — check your card details or try another card.”
+AMOUNT_ERROR	Amount too high / invalid	“Please enter a valid amount that does not exceed the balance.”
+PROCESSING_ERROR	System failure, JDE timeout	“We couldn’t complete your payment — no charge was made.”
+
+This is one of the most impactful UX transformations.
+
+3.4 Confirmation and Feedback
+
+After successful payment:
+
+Confirmation page
+
+Reference number
+
+Email receipt with payment details
+
+Updated balance visible instantly
+
+Failure scenarios:
+
+Clear guidance
+
+No ambiguity on whether charge happened
+
+Accurate next steps
+
+If part of multi-statement batch fails → entire transaction rolled back to ensure consistency
+
+4. Technical Implementation
+4.1 JDE Error Mapping Engine
+
+Built a mapping layer to translate JDE’s 30+ error codes into:
+
+categories (ACCOUNT_ERROR, PAYMENT_ERROR, SYSTEM_ERROR, etc.)
+
+human-readable messages
+
+consistent frontend response schema
+
+Configuration-based so new codes can be added quickly.
+
+4.2 Inline vs Modal Error Logic
+
+You defined rules for when the UI uses:
+
+Inline Errors
+
+Invalid card format
+
+Missing CVV
+
+Empty required fields
+
+Modal Errors
+
+Payment processor declined
+
+JDE returned system failure
+
+Network outage
+
+Multi-statement failure scenarios
+
+This separation improved usability and clarity.
+
+4.3 AutoPay Enrollment Backend Logic
+
+API handles enrollment via:
+
+sending account details & tokenized card details to JDE
+
+updating local database
+
+reflecting state instantly in UI
+
+Error cases handled:
+
+account ineligible
+
+payment method invalid
+
+connection failure
+
+duplicate enrollment attempts
+
+Each error mapped through the new error engine.
+
+4.4 Partial & Multi-Statement Payment Logic
+
+You introduced:
+
+transaction-level rollback → if one item fails, undo entire batch
+
+list of statement IDs + amounts
+
+card/ACH info submitted once per batch
+
+JDE responds per statement; mapping layer consolidates
+
+state update + confirmation on success
+
+4.5 Front-End Enhancements
+
+dynamic rendering for multiple statements
+
+auto-calculation of totals
+
+state management (React/Angular) improvements
+
+"unenrolled accounts only" filter
+
+real-time updates after enrollment
+
+client-side validation before hitting backend
+
+4.6 Data & Integration Logic
+
+Reading statement data from JDE tables
+
+Posting payments directly into ERP financial systems
+
+Updating due balances through nightly sync + immediate post-payment update
+
+Ensuring PCI compliance (card tokenization)
+
+5. Stakeholders & SMEs
+
+You collaborated with:
+
+Accounts Receivable (AR) → eligibility rules & financial constraints
+
+Finance SMEs → payment processing design
+
+Customer Service team → common pain points for error messaging
+
+JDE integration team → error codes, data structures, validations
+
+Deloitte engineering → API + UI implementation
+
+UX team → simplified flow and cleaner payment experience
+
+QA → heavy testing for financial use cases
+
+You often coordinated 3-way meetings between JDE devs, API devs, and UI devs to finalize flows.

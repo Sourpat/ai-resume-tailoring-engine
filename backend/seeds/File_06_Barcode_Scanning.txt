@@ -1,0 +1,328 @@
+FILE 06 — BARCODE SCANNING MODULE BLUEPRINT
+
+(Paste into backend/seeds/06_Barcode_Scanning_Module.txt)
+
+Barcode Scanning — Functional & Technical Blueprint
+1. Problem Summary
+
+Henry Schein offered barcode-based ordering, but adoption was low due to:
+
+reliance on a desktop app + file upload process
+
+inconsistent scanner recognition
+
+limited global support
+
+no mobile scanning
+
+confusing user flow and missing real-time feedback
+
+technical bugs around file parsing, browser compatibility, and scanner behavior
+
+These issues slowed down replenishment workflows, especially for large clinics and DSOs ordering 50–200 line items at a time.
+
+2. Business Objectives
+
+Deliver a global, modern barcode scanning experience across US, CA, UK & future EU markets
+
+Replace slow upload workflows with real-time scan-to-cart
+
+Improve hardware compatibility (USB, Bluetooth, keyboard-emulation)
+
+Lay foundation for mobile scanning (camera-based)
+
+Reduce support tickets related to scanning
+
+Increase online order volume by making reordering fast & frictionless
+
+3. Functional Design
+3.1 Streamlined Scan-to-Cart Workflow
+
+The redesigned workflow:
+
+User connects USB/Bluetooth scanner
+
+Opens GEP "Scan Items" page
+
+Page detects desktop connector app
+
+Items appear instantly in a "Scanning Cart"
+
+Each scan:
+
+auto-adds item
+
+increments quantity
+
+plays a confirmation visual highlight
+
+shows item name, SKU, and price
+
+Backup option: uploading a CSV/TXT barcode list still supported, but now secondary.
+
+Benefits:
+
+No more manual entry
+
+No delay
+
+No pop-ups
+
+No confusion on whether scans are captured
+
+3.2 Desktop Connector App Integration
+
+The desktop utility ("Scanner Connector") is required for USB scanners.
+
+Key UI behaviors:
+
+If the app is running → green indicator “Scanner connected”
+
+If not detected → prompt user:
+
+“Install connector”
+
+“Open connector”
+
+“Troubleshooting: scanner not detected”
+
+The browser communicates with the local app via a lightweight local server (e.g., http://localhost:5010).
+
+This solved the prior issue where scanning silently failed when app wasn’t open.
+
+3.3 Mobile Scanning (Future-Ready Design)
+
+You designed the architecture to allow a future “Scan with camera” experience:
+
+mobile app opens camera
+
+user scans barcode
+
+app sends product code to cart API
+
+consistent UI across web + mobile
+
+In current version:
+
+UI shows “Coming soon: Scan via mobile app”
+
+backend already supports mobile-origin scanning events
+
+This future-proofing allows rapid addition of camera-based scanning without architectural refactoring.
+
+3.4 Barcode Printing & Catalog Integration
+
+To encourage barcode ecosystem adoption:
+
+Users can print barcode sheets from:
+
+Cart
+
+Shopping Lists
+
+Account Dashboard
+
+The PDF contains:
+
+product image
+
+SKU
+
+name
+
+barcode
+
+Users can place printed barcodes on supply bins
+
+This makes scanning practical even if product packaging lacks barcodes.
+
+3.5 Error Handling & User Guidance
+
+Clear guidance replaces ambiguity.
+
+Examples:
+
+Invalid barcode →
+“Barcode not recognized – try again or search manually.”
+
+Scanner disconnected →
+“No scanner detected. Ensure the Scanner Connector app is open.”
+
+Unsupported barcode format →
+“This barcode is not valid for your region.”
+
+These reduce support tickets and increase first-time success rates.
+
+3.6 Multi-Market Behavior
+
+Different countries have different barcoding standards.
+
+You ensured:
+
+UPC, EAN, and global variants supported
+
+region-based product catalog resolution
+
+scanning uses the correct regional SKU table
+
+Example:
+
+A Belgium user scanning a European EAN must map to the EU product
+
+Not to the US SKU
+
+This was crucial for GenZ (EU expansion).
+
+4. Technical Implementation
+4.1 Hardware Integration via Local Desktop App
+
+Web → local app → scanned code → backend cart API
+This overcame browser limitations (Chrome security restrictions).
+
+Implementation included:
+
+lightweight local HTTP listener
+
+JSON streaming of scan events
+
+periodic heartbeat check
+
+automatic reconnects
+
+Scanner types supported:
+
+USB keyboard-emulation
+
+USB HID
+
+Bluetooth scanners
+
+Rapid-scan mode:
+Handles dozens of scans per minute without dropping events.
+
+4.2 Backend APIs
+Primary API: POST /addToCartByBarcode
+
+Payload includes:
+
+{
+  "barcode": "0123456789012",
+  "quantity": 1,
+  "market": "US"
+}
+
+
+Backend processes:
+
+Validate barcode
+
+Map to SKU
+
+Confirm availability
+
+Add to cart
+
+Return updated line item response
+
+Batch mode:
+Supports uploading lists or receiving many scans at once.
+
+4.3 Catalog Mapping & Caching Layer
+
+You introduced:
+
+a cached barcode→SKU lookup (in-memory map)
+
+reduces repeated DB hits during big scanning sessions
+
+Caching drastically improves performance for 100+ consecutive scans.
+
+4.4 File Upload Support
+
+Legacy scanning workflows still supported via file upload:
+
+CSV or TXT
+
+one barcode per line
+
+duplicates aggregated or itemized depending on user choice
+
+Validation included:
+
+ignore blank rows
+
+ignore invalid characters
+
+auto-aggregate duplicates
+
+4.5 Market-Specific Product Resolution
+
+Barcode rules vary:
+
+US → UPC
+
+EU → EAN
+
+CA → manufacturer barcodes
+
+Technical handling includes:
+
+locale detection
+
+route to correct product catalog
+
+automatic EAN/UPC cross-ref mapping where needed
+
+You worked with backend teams to ensure catalog APIs could serve region-specific SKU lookup.
+
+4.6 Scanner Behavior & Troubleshooting Support
+
+You drove resolution of:
+
+scanners that append extra characters (“Enter” or Tab)
+
+French/Belgian keyboards sending unexpected formatting
+
+browsers blocking localhost requests
+
+inconsistent vendor driver behavior
+
+You coordinated between Deloitte devs, Henry Schein infra, and security teams to:
+
+whitelist connector app communication
+
+handle corporate network firewall issues
+
+standardize scanning behavior
+
+5. Stakeholders & Teams
+
+Collaboration included:
+
+Internal ops SMEs (knowing customer scanning workflows)
+
+Deloitte front-end development team
+
+Henry Schein backend integration team
+
+European regional leads (BE/NL/DE)
+
+UX design team (real-time feedback animation, scanning cart layout)
+
+QA team testing:
+
+6–7 scanner models
+
+different browsers
+
+corporate device restrictions
+
+You also incorporated competitive analysis from:
+
+3M
+
+Zahn
+
+Other dental distributors
+
+Your work directly shaped the final scanning user journey.

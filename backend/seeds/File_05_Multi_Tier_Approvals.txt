@@ -1,0 +1,381 @@
+FILE 05 — MULTI-TIER APPROVALS MODULE BLUEPRINT
+
+(Paste into backend/seeds/05_Multi_Tier_Approvals_Module.txt)
+
+Multi-Tier Approvals (MTA) — Functional & Technical Blueprint
+1. Problem Summary
+
+Large dental and medical organizations often require complex multi-level approval workflows:
+
+Supervisor approval > $X
+
+Director approval > $Y
+
+VP approval > $Z
+
+The platform originally supported only a single-tier approval, which:
+
+forced large clients to process high-value orders offline,
+
+created compliance gaps,
+
+led to inefficient order processing,
+
+decreased digital adoption,
+
+and risked losing high-value transactions to competitors.
+
+2. Business Objectives
+
+Support configurable 1, 2, or 3 tier approval chains
+
+Allow threshold-based routing (value-driven levels)
+
+Provide a centralized Approval Dashboard for approvers
+
+Create backup approval pathways
+
+Ensure the workflow integrates seamlessly with JDE order submission
+
+Prevent approval bypassing or duplicate approvals
+
+Support regional differences across UK (GenX), US/CA (GenY), future EU (GenZ)
+
+Improve online adoption for high-value orders
+
+3. Functional Design
+3.1 Flexible Approval Levels
+
+Organizations may configure:
+
+1-Tier → Supervisor
+
+2-Tier → Supervisor → Director
+
+3-Tier → Supervisor → Director → VP
+
+Threshold examples:
+
+Up to $5,000 → Level 1
+
+$5,001–$20,000 → Level 1 + Level 2
+
+Above $20,000 → all three levels
+
+Workflows can be:
+
+Sequential (L1 → L2 → L3)
+
+Parallel (all get notified at once)
+
+Some clients prefer parallel for speed; others prefer sequential for control.
+
+3.2 Role-Based Routing & Backup Approvers
+
+Each level supports:
+
+Primary Approver
+
+Optional Backup Approver
+
+Rules:
+
+If primary is inactive or unresponsive → backup notified
+
+If both missing → escalation or fallback rules apply
+
+If no approver assigned for a required level → admin-defined fallback:
+
+skip the level (if policy permits), or
+
+route to org administrator
+
+This prevents “no-approver” dead ends.
+
+3.3 Approval Dashboard (Approval Cart)
+
+A centralized location where approvers can:
+
+view all pending approvals
+
+filter by requester, date, order value, level
+
+approve or reject requests
+
+view historical decisions
+
+inspect full order details
+
+access audit logs
+
+Dashboard is visible only to users with approval roles.
+
+This drastically improves usability for high-volume approvers.
+
+3.4 UI Notifications & Tooltip Design
+
+Notifications:
+
+Requester notified when:
+
+order submitted
+
+approved
+
+rejected
+
+Approver notified when:
+
+new order requires approval
+
+backup escalation occurs
+
+approval is overdue
+
+Tooltips clarify:
+
+Disabled actions
+
+Why approval isn’t required
+
+Market-specific rules
+
+CC-order exemptions (budget tie-in)
+
+3.5 Edge Case Handling
+
+You defined dozens of edge cases including:
+
+Payment Method Change Mid-Approval
+
+Switching BOA → CC after submission cancels need for further approvals
+
+Approver gets message:
+“Order is now credit-card-paid; approval no longer required. Add payment to proceed.”
+
+Prevents approval chains from auto-cancelling incorrectly
+
+Concurrent Approvals
+
+If two approvers act simultaneously:
+
+the first action wins
+
+the second receives a message
+“Order already processed; no further action needed.”
+
+Order Value Changes
+
+If requester edits cart value after initial submission:
+
+New approval required if threshold changes
+
+Previous approvals invalidated
+
+Partially shipped orders
+
+If approval is pending → prevent editing or partial shipments until approval completes.
+
+GenX vs GenY differences
+
+GenX (UK) → CC orders skip approval entirely
+
+GenY (US/CA) → client configurations may require approvals even for CC orders
+
+4. Technical Implementation
+4.1 Workflow Engine & Configuration
+
+A robust rules engine evaluates:
+
+thresholds
+
+approver assignments
+
+market rules
+
+payment method flags
+
+whether sequential or parallel approval applies
+
+Engine outputs:
+
+number of levels needed
+
+assigned approvers for each level
+
+workflow state transitions
+
+Stored in configuration tables per client → highly flexible.
+
+4.2 Integration With Ordering System (JDE)
+
+Rules:
+
+Orders requiring approval are put on HOLD
+
+JDE receives no order until final approval
+
+After approval:
+
+system triggers order placement to JDE
+
+On rejection:
+
+order is marked cancelled in GEP
+
+never sent to JDE
+
+All approvals logged with:
+
+user
+
+timestamp
+
+decision
+
+comments (if provided)
+
+4.3 User Roles & Permissions
+
+Permissions defined:
+
+APPROVER_LEVEL_1
+
+APPROVER_LEVEL_2
+
+APPROVER_LEVEL_3
+
+Front-end checks:
+
+whether user sees approval dashboard
+
+whether user can take action
+
+whether they are assigned for that specific request
+
+whether they can override or escalate
+
+Back-end validates:
+
+user identity
+
+role correctness
+
+assigned approver → prevents impersonation risks
+
+4.4 Approval State Machine
+
+States include:
+
+PENDING_L1
+
+PENDING_L2
+
+PENDING_L3
+
+APPROVED
+
+REJECTED
+
+CANCELLED
+
+SKIPPED (market or configuration rules)
+
+Transitions generate events:
+
+email notifications
+
+UI alerts
+
+workflow logs
+
+next approver assignment
+
+4.5 Notifications & Event Handling
+
+Triggering conditions:
+
+workflow entry
+
+workflow exit
+
+threshold changes
+
+market rule changes
+
+payment logic overrides
+
+backup escalation
+
+overdue reminders
+
+Backend integrates with notification engine to push:
+
+emails
+
+in-app notifications
+
+dashboard banners
+
+4.6 Market Differences (GenX / GenY / Future GenZ)
+GenX (UK)
+
+CC orders skip approval
+
+BOA orders use approval
+
+No budgets for CC orders (linked to Budget Management)
+
+GenY (US/CA)
+
+Some clients want approvals even for CC
+
+More complex approval matrices
+
+Supports multiple hierarchical variations
+
+GenZ (Future EU Rollout)
+
+Framework supports:
+
+strict pharma regulations
+
+country-specific approvals
+
+cross-platform configuration (toggle based)
+
+5. Stakeholders & Collaboration
+
+You collaborated with:
+
+Compliance SMEs
+
+Large pilot customers (DSOs)
+
+Product managers
+
+UX team (dashboard, tooltips, flows)
+
+Deloitte development teams (front-end + middleware)
+
+Henry Schein internal backend team
+
+JDE integration engineers
+
+QA (massive scenario matrix testing)
+
+Customer Support & Training teams
+
+Your contributions included:
+
+translating business rules into technical workflow design
+
+defining thresholds, scenarios, and fallback logic
+
+driving design reviews and UAT cycles
+
+clarifying GenX vs GenY differences
+
+ensuring end-to-end alignment with payments & budgets
+
+specifying every edge case to avoid defects

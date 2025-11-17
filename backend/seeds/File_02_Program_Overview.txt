@@ -1,0 +1,355 @@
+FILE 02 — GEP_PROGRAM_OVERVIEW.txt
+
+(RAG-READY | No personal info | Clean technical/business context)
+
+Global E-Commerce Platform (GEP) – Program Overview
+
+Henry Schein’s Global E-Commerce Platform (GEP) is a multinational digital platform supporting regulated medical/dental commerce across the US, Canada, UK/Ireland, and expanding EU markets.
+The program consolidates all customer-facing ordering, compliance, payment, and account-management workflows under a unified experience with configurable market-specific rules known as GenX, GenY, GenZ rollouts.
+
+The platform integrates deeply with JD Edwards (JDE) as the ERP for order validation, customer master data, license compliance, statements, payment posting, and approval workflows.
+
+GEP is delivered by multiple implementation partners — notably Deloitte (US/Canada front-end & middleware), TCS (UK/IE legacy and backend extensions), and BST (integration, reporting, data).
+
+1. Core Architecture Overview
+Platform Layers
+
+Front-End (GenX, GenY React/Angular variants)
+
+Dynamic UI driven via configuration/feature flags
+
+Market toggle for UK/US/CA behaviors
+
+Conditional rendering based on payment rules, license rules, approval rules
+
+Checkout micro-flows for budgets, multi-tier approvals, license checks
+
+Middleware (APIs / microservices)
+
+License validation APIs
+
+Budget & Approval workflow engine
+
+Payment processing layer (credit card ↔ SnapPay ↔ JDE)
+
+Reporting scheduler and generation service
+
+Controlled Substance Form (CSF) submission APIs
+
+Profile & preferences service
+
+ERP Integration (JD Edwards)
+
+Order submit/hold/release
+
+License verification and status mapping
+
+Budget flags, payment terms, credit limits
+
+Statement generation, payment posting
+
+Customer master sync
+
+Data Jobs & Sync Processes
+
+Nightly license expiry sweeps
+
+Multi-market catalog loads
+
+Statement and invoice loads
+
+Scheduled report triggers
+
+Attestation and compliance flags sync
+
+2. Market Rollout Structure (GenX → GenY → GenZ)
+GenX (UK/IE)
+
+First rollout of GEP
+
+Simpler workflows
+
+Less controlled substances compliance
+
+Strict credit card-only = no approvals, no budgets
+
+Older UI components and legacy code to be replaced gradually
+
+GenY (US/Canada)
+
+Full compliance-heavy implementation
+
+DEA license enforcement
+
+State license enforcement
+
+TDDD (Ohio) and similar addendums
+
+Credit card + budget hybrid rules
+
+Multi-tier approval option
+
+Advanced reporting + payment error mapping
+
+GenZ (Europe – planned)
+
+Requirements gathering in progress across multiple EU markets
+
+Expected integrations: medical device licenses, pharmacy permits, regional payment providers
+
+Requires fully configurable compliance engine
+
+3. GEP Feature Modules (High-Level Summary)
+MODULE A — LICENSE MANAGEMENT
+
+Purpose: Ensure only valid, non-expired DEA/state licenses may buy regulated items.
+
+Core Capabilities:
+
+License capture, storage, validation
+
+30/7-day expiry notification jobs
+
+Checkout blocking when expired
+
+JDE cross-check for latest license status
+
+Attestation modal logic based on license type
+
+Market-specific license rules (UK vs US/CA differences)
+
+Integration with Controlled Substance Forms (CSF)
+
+Key Technical Concepts:
+
+Real-time + nightly sync
+
+Flags determining when modals appear
+
+Grace-period handling for timing mismatches
+
+Location-level license mapping
+
+MODULE B — BUDGET MANAGEMENT
+
+Purpose: Enforce customer-defined spending controls, approvals, thresholds.
+
+Key Rules:
+
+BOA (Bill On Account) → budgets + approvals active
+
+Credit Card → disable budgets, hide approval UI
+
+Market differences (UK disables budgets for CC; US optionally supports hybrid CC+approval flows)
+
+Technical Components:
+
+Config-driven approval requirement flags
+
+UI conditional rendering
+
+Order submission logic that decides whether order remains on hold or goes to JDE
+
+Error handling for mid-order payment method switches
+
+MODULE C — MULTI-TIER APPROVALS
+
+Purpose: Allow multi-level spending approval chain (1–3 tiers).
+
+Core Capabilities:
+
+Threshold-based approver routing
+
+Primary + backup approver options
+
+Approval Cart (central dashboard)
+
+Notifications per status transition
+
+Sequential or parallel approval patterns
+
+Market toggles for CC bypass behavior
+
+Technical Components:
+
+Workflow engine
+
+State machine transitions
+
+Integration with order hold/release in JDE
+
+Role-based visibility and permissions
+
+MODULE D — BARCODE SCANNING
+
+Purpose: Allow large clinics/DSOs to replenish stock by scanning barcodes.
+
+Features:
+
+Real-time scan-to-cart using desktop connector app
+
+Batch upload of CSV/TXT
+
+Barcode printing for bins
+
+Error handling for unrecognized barcodes
+
+Multi-market catalog mapping
+
+Technical Processes:
+
+Local listener app ↔ front-end communication
+
+API lookup for barcode→SKU mapping
+
+Market-aware catalog mapping
+
+Offline fallback for bulk uploads
+
+MODULE E — STATEMENTS & PAYMENTS
+
+Purpose: Enable self-service financial management including payments, AutoPay, and viewing statements.
+
+Functional Enhancements:
+
+AutoPay enrollment filtering (show only unenrolled accounts)
+
+Rule enforcement based on allowed payment methods
+
+Enhanced Make a Payment flow (single/multi-statement, partial payments)
+
+Mapping 30+ raw JDE error codes into user-friendly messages
+
+Processing flows: retryable vs non-retryable errors
+
+Technical Components:
+
+JDE error mapping layer
+
+Unified payment gateway messaging
+
+Transaction rollback logic for multi-statement failures
+
+Secure storage of payment methods
+
+State management updates/reflecting enrollment changes
+
+MODULE F — REPORTING
+
+Purpose: Self-service scheduled and one-time reporting for purchase history, budgets, etc.
+
+Capabilities:
+
+Multi-step report creation
+
+Modify existing report with pre-filled fields
+
+Recurring scheduling (daily/weekly/monthly)
+
+Email-based delivery with fallbacks
+
+Failure notifications
+
+Large data processing safeguards
+
+Technical Components:
+
+Report generation service + job scheduler
+
+Data warehouse and ERP data retrieval
+
+Recursive scheduling + failure handling
+
+Localization (dates, currency)
+
+MODULE G — CONTROLLED SUBSTANCE FORMS (CSF)
+
+Purpose: Ensure DEA/state compliance when ordering controlled products.
+
+Core Capabilities:
+
+Dynamic CSF generation (state-specific addendums like Ohio TDDD)
+
+Auto-prefill from License Management
+
+Attestation and practitioner details
+
+Manual vs auto-approval logic
+
+Blocking checkout until CSF complete
+
+Technical Components:
+
+Secure form storage
+
+JDE flags indicating controlled-access permissions
+
+Validation rules (DEA format, state rules)
+
+Bug fixing around missing state dropdowns (e.g., Ohio TDDD)
+
+MODULE H — PROFILE & CHECKOUT PREFERENCES
+
+Purpose: Give users secure and intuitive account management.
+
+Capabilities:
+
+Express Checkout defaults (payment, shipping)
+
+Credential update security: password re-authentication + 3-strike lockout
+
+Re-organized profile layout (profile photo, contact info)
+
+Payment method restrictions surfaced from org settings
+
+Multi-level default settings for organizations
+
+Technical Components:
+
+Profile service updates
+
+Defaults applied during checkout flow
+
+File validation for profile images
+
+Security enhancements around credential updates
+
+4. Cross-Functional Responsibilities Across All Modules
+
+Across the entire GEP program, core recurring responsibilities include:
+
+Writing, refining, and prioritizing user stories
+
+Converting business rules (SMEs, legal, finance) into technical requirements
+
+Leading system design sessions with dev teams (Deloitte, TCS, internal teams)
+
+Creating edge-case analyses, flowcharts, matrix testing
+
+Managing change requests (CRs) and compliance-driven updates
+
+Leading UAT, writing test scenarios, validating integrations
+
+Supporting feature toggles, cohort rollouts, and market-based launch planning
+
+Ensuring regulatory alignment (DEA, state boards, controlled substances compliance)
+
+Maintaining design system alignment and consistent UX
+
+Coordinating data flows, integrations, and localization across markets
+
+5. Global Value Delivered by GEP
+
+Strengthened compliance (DEA/state licenses, CSF validations)
+
+Reduced order failures and increased first-attempt success rates
+
+Improved customer trust with transparent approvals and payment flows
+
+Enabled global consistency while respecting regional rules
+
+Reduced support tickets across payments, scanning, approvals, reporting
+
+Increased online ordering volume from DSOs, multi-location customers
+
+Established scalable foundation for future GenZ European rollouts

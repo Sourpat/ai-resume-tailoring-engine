@@ -4,7 +4,7 @@ from fastapi import APIRouter
 
 from services.logging_service import LoggingService
 from vector_store.connectors import VectorDBConnector
-from vector_store.ingest import INGESTION_DIR
+from vector_store.ingest import SEED_DIR
 
 
 router = APIRouter()
@@ -27,7 +27,7 @@ def debug_paths():
     vector_db = VectorDBConnector()
     return {
         "project_root": _path_info(PROJECT_ROOT),
-        "ingestion_dir": _path_info(INGESTION_DIR),
+        "ingestion_dir": _path_info(SEED_DIR),
         "vector_db_path": _path_info(Path(vector_db.db_path)),
         "cwd": str(Path.cwd()),
     }
@@ -38,7 +38,7 @@ def debug_seed_files():
     try:
         seed_files = [
             {"name": f.name, "size": f.stat().st_size}
-            for f in sorted(INGESTION_DIR.glob("*.txt"))
+            for f in sorted(SEED_DIR.glob("*.txt"))
         ]
         return {"count": len(seed_files), "files": seed_files}
     except Exception as exc:  # pragma: no cover - defensive

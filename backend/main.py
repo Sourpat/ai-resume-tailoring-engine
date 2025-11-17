@@ -23,10 +23,11 @@ app.include_router(test_routes.router, prefix="/test")
 @app.on_event("startup")
 async def startup_event():
     try:
+        print("Running vector store ingestion...")
         build_initial_vector_store()
         print("Vector store initialized successfully.")
     except Exception as e:
-        print("Vector store failed to initialize:", e)
+        print("ERROR: Vector store failed to initialize:", e)
 
 
 @app.get("/")

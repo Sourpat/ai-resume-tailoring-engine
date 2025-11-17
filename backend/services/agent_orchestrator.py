@@ -3,6 +3,7 @@ from backend.agents.export_agent import ExportAgent
 from backend.agents.jd_analyzer import JdAnalyzerAgent
 from backend.agents.rag_retriever import RagRetrieverAgent
 from backend.agents.tailoring_engine import TailoringEngineAgent
+from backend.services.logging_service import LoggingService
 
 
 class AgentOrchestrator:
@@ -12,13 +13,35 @@ class AgentOrchestrator:
         self.tailoring_engine = TailoringEngineAgent()
         self.ats_formatter = ATSFormatterAgent()
         self.export_agent = ExportAgent()
+        self.logger = LoggingService()
 
     def run_pipeline(self, jd_text: str) -> dict:
+        self.logger.log_info("Running JD Analyzer...")
         jd_analysis = self.jd_analyzer.run(jd_text)
+        self.logger.log_debug(f"JD analysis result: {jd_analysis}")
+        self.logger.log_info("JD Analyzer completed")
+
+        self.logger.log_info("Running RAG Retriever...")
         retrieved_seeds = self.rag_retriever.run(jd_analysis)
+        self.logger.log_debug(f"RAG retriever result: {retrieved_seeds}")
+        self.logger.log_info("RAG Retriever completed")
+
+        self.logger.log_info("Running Tailoring Engine...")
         tailored_bullets = self.tailoring_engine.run(jd_analysis, retrieved_seeds)
+        self.logger.log_debug(f"Tailoring engine result: {tailored_bullets}")
+        self.logger.log_info("Tailoring Engine completed")
+
+        self.logger.log_info("Running ATS Formatter...")
         formatted_output = self.ats_formatter.run(tailored_bullets)
+        self.logger.log_debug(f"ATS formatter result: {formatted_output}")
+        self.logger.log_info("ATS Formatter completed")
+
+        self.logger.log_info("Running Export Agent...")
         exports = self.export_agent.run(formatted_output)
+        self.logger.log_debug(f"Export agent result: {exports}")
+        self.logger.log_info("Export Agent completed")
+
+        self.logger.log_info("Pipeline run complete.")
 
         return {
             "jd_analysis": jd_analysis,

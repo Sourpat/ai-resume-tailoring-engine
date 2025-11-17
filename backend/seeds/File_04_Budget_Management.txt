@@ -1,0 +1,313 @@
+FILE 04 — BUDGET MANAGEMENT MODULE BLUEPRINT
+
+(Ready to paste into backend/seeds/04_Budget_Management_Module.txt)
+
+Budget Management Module — Functional & Technical Blueprint
+1. Problem Summary
+
+Large dental/medical organizations often impose budgets, spend thresholds, and approval chains on purchases.
+However, earlier versions of the platform had critical gaps:
+
+Credit-card-only accounts were incorrectly shown budget options that did not apply
+
+Approval workflows were triggered or skipped inconsistently
+
+Orders became “stuck” when payment method changed mid-workflow
+
+UK (GenX) and US/CA (GenY) markets had different rules, causing cross-market defects
+
+Checkout UI mixed budget logic with payment logic, creating confusion
+
+No consistent handling of approval states when payment settings changed
+
+The result: user confusion, incorrect routing, and support escalations.
+
+2. Business Objectives
+
+Enforce spend controls only where applicable
+
+Disable or adjust budget flows for credit card–only accounts
+
+Support diverse market rules (GenX vs GenY)
+
+Prevent misrouted or stuck orders
+
+Improve user clarity with tooltips, disabled states, and dynamic UI
+
+Decouple budget logic from payment logic to avoid cross-influence
+
+Ensure orders that require approval cannot bypass it
+
+3. Functional Design
+3.1 Dynamic Approval Options Based on Payment Method
+If account = Bill on Account (BOA)
+
+Budget fields are enabled
+
+“Submit for Approval” button is active
+
+Approval routing applies normally
+
+Overspend → approval required
+
+Payment happens post-approval
+
+If account = Credit Card Only
+
+Budget fields are disabled/hidden
+
+“Submit for Approval” is disabled or absent
+
+Tooltip explains: “Budget approval not required for credit card orders.”
+
+Orders proceed directly to payment
+
+Core principle:
+
+Credit card orders NEVER require budget approvals.
+
+3.2 Market-Specific Rules (GenX vs GenY)
+GenX (UK)
+
+Purely credit-card accounts: budget module disabled entirely
+
+Budget selection screens are skipped
+
+No approval workflow for CC orders
+
+GenY (US/CA)
+
+Credit-card accounts may still use budgets if company policies allow
+
+Some clients require a one-level approval even for CC orders
+
+Requires configuration flags per client
+
+Key Output:
+
+Configurable flags prevent one market’s rules from leaking into another’s logic.
+
+3.3 Mid-Order Payment Method Change Handling
+
+Scenario:
+A user submits an order under BOA → approval workflow starts → later, an admin changes location payment method to Credit Card.
+
+Design rules:
+
+Existing pending orders keep their state (“Pending Approval”)
+
+Orders are not auto-cancelled
+
+Approver sees info message:
+“This order no longer requires approval due to updated payment settings. Add payment to proceed.”
+
+Must avoid “orphaned” orders stuck between states
+
+This prevents both:
+
+Invalid auto-approvals
+
+Dead-end workflows
+
+3.4 Decoupling Budget Logic from Payment Logic
+
+Originally, payment fields influenced budget logic → causing defects.
+
+Fix:
+Budget justification and approval steps are handled separately from payment input.
+
+Outcomes:
+
+If payment = CC → skip budget step
+
+If payment = BOA → enforce budget step
+
+No UI overlap
+
+No cross-triggering of incorrect rules
+
+3.5 User Guidance & Defaults
+
+Approval routing auto-selects based on thresholds
+
+If budgets not applicable → default to immediate order placement
+
+Greyed-out fields have explanatory tooltips
+
+Contextual messaging reduces confusion and support tickets
+
+4. Technical Implementation
+4.1 Configurable Policy Engine
+
+A configuration-driven rules engine determines:
+
+Whether budget applies
+
+Whether approval is required
+
+Market-specific flags
+
+Allowed payment types
+
+Whether CC accounts can use budgets (GenY only)
+
+Backend exposes these flags via API → front-end renders UI accordingly.
+
+4.2 UI State Management
+
+Conditional rendering for elements such as:
+
+Budget selection dropdown
+
+Submit for Approval button
+
+Approval banner
+
+Tooltip explanations
+
+Disabled states for non-applicable fields
+
+Tests covered:
+
+CC-only accounts
+
+BOA accounts
+
+Mixed-payment orgs
+
+Organizations with toggled budget settings mid-session
+
+4.3 Backend Order Handling
+
+Each order has flags:
+
+approvalRequired: true/false
+
+approverWorkflowID
+
+paymentMethodType
+
+Backend logic handles:
+
+Placing orders on “Hold” for approval
+
+Auto-releasing orders when approval no longer required
+
+Preventing BOA → CC switches post-submission unless handled manually
+
+Logging audit trails for approval changes
+
+4.4 Error & State Transition Handling
+
+New transitions added:
+
+NOT_REQUIRED
+
+APPROVAL_REVOKED
+
+REQUIRES_APPROVAL
+
+READY_FOR_RELEASE
+
+Each transition ensures:
+
+No incorrect release to JDE
+
+No bypass of approval
+
+Clean routing and traceability
+
+4.5 Real UAT Scenario Testing
+
+Examples of core scenarios tested:
+
+CC-only account → ensure no approval step
+
+BOA account → submit for approval → admin flips to CC-only
+
+Approval settings not updating when BOA removed
+
+Tooltip correctness
+
+GenX/GenY behavioral differences
+
+You identified defects like:
+
+Approval not refreshing after removing BOA
+
+Stale budget banners
+
+Missing tooltips in CC-only mode
+
+All resolved via refinement of API responses + state logic.
+
+5. Stakeholders & Cross-Team Collaboration
+
+Key contributors and SMEs:
+
+Finance & Sales Operations (rules formation)
+
+IT architects (placement of logic: FE vs services vs JDE flags)
+
+Deloitte dev team (checkout and approval UI)
+
+Internal IT (API + JDE updates)
+
+QA (complex scenario matrix testing)
+
+UX (tooltips, state clarity, disabled behavior)
+
+Customer Support/Training (to explain new flows to clients)
+
+Your role included:
+
+Defining rules, edge cases, fallback paths
+
+Clarifying market differences
+
+Writing acceptance criteria
+
+Coordinating daily with developers
+
+Testing end-to-end from a business lens
+
+Triaging defects from UAT
+
+6. Value Delivered
+✔ Eliminated approval confusion for CC orders
+
+Users no longer see incorrect or misleading budget fields.
+
+✔ Reduced support tickets
+
+Clearer UI + correct logic → fewer “unable to checkout” calls.
+
+✔ Improved global consistency
+
+GenX and GenY reliably follow their own rules.
+
+✔ Prevented orphaned/stuck orders
+
+Through well-defined mid-order change logic.
+
+✔ Increased trust for large enterprise clients
+
+Better control over spending + fewer approval breakdowns.
+
+7. Logical Next Steps / Roadmap
+
+Self-service admin UI for configuring budgets & approvers
+
+In-app notifications for pending approvals (instead of email-only)
+
+Spend vs budget reporting integration with Reporting module
+
+Consolidated rules engine for global clients
+
+Upgrade UK GenX platform to include improved UI elements
+
+Add multi-tier approvals integration phase for organizations
+
+Global rollout alignment for EU/GenZ
+
+Automated reminders to approvers to prevent aging approvals

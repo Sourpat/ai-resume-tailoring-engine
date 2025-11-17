@@ -11,7 +11,7 @@ load_dotenv()
 
 client = OpenAI()
 
-SEEDS_DIR = Path(__file__).resolve().parent.parent / "seeds"
+INGESTION_DIR = Path(__file__).resolve().parent.parent / "ingestion"
 VECTOR_STORE_PATH = Path(__file__).resolve().parent.parent / "vector_store"
 
 class Retriever:
@@ -26,7 +26,7 @@ class Retriever:
     @staticmethod
     def load_seed_documents() -> List[dict]:
         documents = []
-        for file in SEEDS_DIR.glob("*.txt"):
+        for file in INGESTION_DIR.glob("*.txt"):
             with open(file, "r", encoding="utf-8") as f:
                 documents.append({
                     "filename": file.name,

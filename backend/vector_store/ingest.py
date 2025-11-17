@@ -7,17 +7,17 @@ from .connectors import VectorDBConnector
 
 
 BASE_DIR = Path(__file__).resolve().parents[1]
-SEED_DIR = BASE_DIR / "seeds"
+INGESTION_DIR = BASE_DIR / "ingestion"
 logger = LoggingService()
 
 
 def load_seed_documents() -> List[str]:
     docs: List[str] = []
-    if not SEED_DIR.exists():
-        logger.log_error(f"Seed directory not found: {SEED_DIR}")
+    if not INGESTION_DIR.exists():
+        logger.log_error(f"Ingestion directory not found: {INGESTION_DIR}")
         return docs
 
-    for seed_file in sorted(SEED_DIR.glob("*.txt")):
+    for seed_file in sorted(INGESTION_DIR.glob("*.txt")):
         try:
             docs.append(seed_file.read_text(encoding="utf-8"))
         except OSError as exc:  # pragma: no cover - defensive

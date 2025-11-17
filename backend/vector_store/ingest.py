@@ -6,8 +6,10 @@ from services.logging_service import LoggingService
 from .connectors import VectorDBConnector
 
 
-SEED_DIR = Path(__file__).resolve().parent.parent / "seeds"
+BASE_DIR = Path(__file__).resolve().parents[2]
+SEED_DIR = BASE_DIR / "backend" / "seeds"
 SEED_DIR.mkdir(parents=True, exist_ok=True)
+print("Resolved SEED_DIR:", SEED_DIR)
 logger = LoggingService()
 
 

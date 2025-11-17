@@ -1,16 +1,27 @@
 from pathlib import Path
 from typing import List
 
+from services.logging_service import LoggingService
+
 from .connectors import VectorDBConnector
 
 
-SEED_DIR = Path("backend/seeds")
+BASE_DIR = Path(__file__).resolve().parents[1]
+SEED_DIR = BASE_DIR / "seeds"
+logger = LoggingService()
 
 
 def load_seed_documents() -> List[str]:
-    docs = []
-    for f in SEED_DIR.glob("*.txt"):
-        docs.append(f.read_text(encoding="utf-8"))
+    docs: List[str] = []
+    if not SEED_DIR.exists():
+        logger.log_error(f"Seed directory not found: {SEED_DIR}")
+        return docs
+
+    for seed_file in sorted(SEED_DIR.glob("*.txt")):
+        try:
+            docs.append(seed_file.read_text(encoding="utf-8"))
+        except OSError as exc:  # pragma: no cover - defensive
+            logger.log_error(f"Failed to read seed file {seed_file}: {exc}")
     return docs
 
 
@@ -18,9 +29,13 @@ def build_initial_vector_store() -> VectorDBConnector:
     """Populate a local vector store from seed files."""
     connector = VectorDBConnector()
     docs = load_seed_documents()
+    if not docs:
+        logger.log_error("No seed documents found; skipping vector store build.")
+        return connector
+
     connector.add_documents(docs)
     connector.save_local_db()
-    print(f"Vector store built with {len(connector.vectors)} items.")
+    logger.log_info(f"Vector store built with {len(connector.vectors)} items.")
     return connector
 
 

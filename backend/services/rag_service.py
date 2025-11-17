@@ -1,5 +1,5 @@
-from backend.services.embedding_service import EmbeddingService
-from backend.vector_store.connectors import VectorDBConnector
+from services.embedding_service import EmbeddingService
+from vector_store.connectors import VectorDBConnector
 
 
 class RAGService:

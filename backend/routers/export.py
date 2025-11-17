@@ -4,7 +4,7 @@ from typing import List
 from fastapi import APIRouter
 from pydantic import BaseModel
 
-from backend.agents.export_agent import ExportAgent
+from agents.export_agent import ExportAgent
 
 router = APIRouter()
 

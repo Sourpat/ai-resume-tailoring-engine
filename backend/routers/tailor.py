@@ -1,7 +1,7 @@
 from fastapi import APIRouter
 from pydantic import BaseModel
 
-from backend.services.agent_orchestrator import AgentOrchestrator
+from services.agent_orchestrator import AgentOrchestrator
 
 router = APIRouter()
 

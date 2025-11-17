@@ -1,7 +1,7 @@
 import os
 from typing import Dict, List
 
-from backend.services.embedding_service import EmbeddingService
+from services.embedding_service import EmbeddingService
 from .connectors import VectorDBConnector
 
 

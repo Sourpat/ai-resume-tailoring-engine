@@ -1,9 +1,9 @@
 from fastapi import APIRouter, Query
 
-from backend.services.agent_orchestrator import AgentOrchestrator
-from backend.services.embedding_service import EmbeddingService
-from backend.services.logging_service import LoggingService
-from backend.vector_store.connectors import VectorDBConnector
+from services.agent_orchestrator import AgentOrchestrator
+from services.embedding_service import EmbeddingService
+from services.logging_service import LoggingService
+from vector_store.connectors import VectorDBConnector
 
 router = APIRouter()
 logger = LoggingService()

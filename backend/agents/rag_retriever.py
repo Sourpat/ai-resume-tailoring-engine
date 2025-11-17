@@ -1,4 +1,4 @@
-from backend.services.rag_service import RAGService
+from services.rag_service import RAGService
 
 
 class RagRetrieverAgent:

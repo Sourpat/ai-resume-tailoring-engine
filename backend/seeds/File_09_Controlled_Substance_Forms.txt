@@ -1,0 +1,339 @@
+FILE 09 — CONTROLLED SUBSTANCE FORMS (CSF) MODULE BLUEPRINT
+1. Problem Summary
+
+The Controlled Substance Forms (CSF) workflow was incomplete, inconsistent, and partially outdated, creating:
+
+compliance risks (DEA/state rules not fully enforced)
+
+missing or incorrect questions
+
+outdated addresses and instructions
+
+incorrect conditional logic (e.g., Ohio TDDD rules)
+
+bugs where fields did not appear for certain states
+
+frustrating user experience when adding controlled products to cart
+
+unpredictable checkout blocks
+
+These gaps threatened legal compliance, delayed orders, increased manual verification effort, and created friction for legitimate buyers.
+
+2. Business Objectives
+
+Ensure full compliance with DEA, state pharmacy boards, and internal legal policies.
+
+Centralize and digitize all Controlled Substance authorization documents.
+
+Reduce manual review by aligning CSF logic with License Management data.
+
+Make the experience transparent, guidance-driven, and error-free for customers.
+
+Support expansion to new markets (Canada, EU) with configurable workflows.
+
+Eliminate unexpected checkout blocks by validating all data upfront.
+
+3. Functional Design
+3.1 Comprehensive Form Content
+
+You conducted a full review of DEA and state requirements and:
+
+fixed outdated wording
+
+corrected missing fields
+
+added new questions required by compliance
+
+updated contact details and disclaimers
+
+ensured the form matches regulatory text exactly
+
+This guaranteed legal alignment and reduced audit risk.
+
+3.2 State-Specific Dynamic Sections
+
+Some states require extra fields/attestations.
+
+Ohio Example — TDDD License
+
+If shipping to Ohio:
+
+show Ohio TDDD section
+
+require license number or “exempt” reason
+
+show correct attestation text
+
+validate license format
+
+You documented logic for:
+
+OH
+
+TX
+
+FL
+
+NY
+
+any state with extra CSF requirements
+
+This made the form intelligent rather than one-size-fits-all.
+
+3.3 Integration with License Management
+
+You merged CSF with existing License Management:
+
+pre-fill DEA number, expiration, and practitioner license
+
+reduce duplicate data entry
+
+enforce matching information
+
+ensure form and license records are consistent
+
+If DEA license is missing → block until added.
+
+If DEA expired → CSF cannot be completed.
+
+3.4 Trigger Conditions & Modal Prompts
+
+When a user adds a controlled item to cart or checks out:
+
+system checks if CSF is on file
+
+if not, open CSF modal or redirect to form page
+
+show message:
+“To purchase regulated products, please complete the Controlled Substance Authorization Form.”
+
+The form is broken into sections:
+
+facility info
+
+practitioner credentials
+
+DEA/state license details
+
+attestations
+
+signatures/agreements
+
+This prevents orders from being blocked late in checkout.
+
+3.5 Submission & Review Flow
+
+Based on rules and risk level:
+
+Auto-approval logic:
+
+DEA format valid
+
+license not expired
+
+state doesn’t require manual review
+
+product is low-risk
+
+historical behavior clean
+
+Manual review logic:
+
+first-time controlled purchaser
+
+high-risk product category
+
+state-specific exceptions
+
+DEA/State license mismatch
+
+expired or inconsistent info
+
+User gets one of two messages:
+
+Approved instantly → can continue to checkout
+
+Pending review → cannot checkout controlled items until approved
+
+Pending approvals appear in an internal queue for the compliance team.
+
+3.6 User Guidance & Error UX
+
+Examples:
+
+Invalid DEA format →
+“DEA number must follow the pattern AA1234567.”
+
+Missing state requirement →
+“Ohio TDDD license is required for this shipping address.”
+
+Expired license →
+“Your DEA license has expired. Please update it before continuing.”
+
+You added:
+
+tooltips
+
+section-level instructions
+
+inline validation
+
+success banners
+
+“save as draft” capability
+
+4. Technical Implementation
+4.1 Form Data Model & Storage
+
+Built new DB tables to store:
+
+facility details
+
+practitioner details
+
+DEA license info
+
+state licenses
+
+attestations
+
+status (approved / pending / rejected)
+
+submission timestamps
+
+reviewer metadata
+
+Sensitive data stored securely with access restrictions.
+
+4.2 Integration with JDE & Compliance Systems
+
+Key behaviors:
+
+when CSF approved → update JDE “Controlled Purchase Allowed = Y”
+
+when DEA license expires → automatically invalidate CSF
+
+pull license data from JDE for consistency
+
+push CSF updates to JDE whenever form changes
+
+allow internal reviewers to override decisions
+
+This created a tight loop ensuring no inconsistencies between GEP and ERP.
+
+4.3 Ohio TDDD Bug Fix (Critical)
+
+You led investigation of a major issue:
+
+Ohio locations not appearing in selection dropdown
+
+incorrect filtering logic
+
+required locations suppressed if TDDD missing
+
+You:
+
+traced logic from UI → API → DB
+
+identified root cause (filter requiring license record even when none exists)
+
+authored defect documentation
+
+worked with devs to patch filtering
+
+validated location #1000837 (Steubenville, OH) as part of UAT
+
+This fix unblocked hundreds of users.
+
+4.4 Comprehensive Validation Engine
+
+Both front-end and back-end validation implemented:
+
+DEA number format
+
+date ranges
+
+required fields per state
+
+dependent fields logic
+
+multiple DEA licenses supported
+
+practice type validation (e.g., clinic vs practitioner differences)
+
+Server-side validation guarantees security and consistency even if user bypasses UI constraints.
+
+4.5 Draft Support & Auto-Save
+
+To prevent loss of data:
+
+form autosaves every few seconds
+
+draft entries stored separately
+
+users returning later see partial progress
+
+Important due to the length & complexity of CSF.
+
+4.6 Admin Review Portal
+
+Internal reviewers needed a way to:
+
+view submitted CSF
+
+compare against license data
+
+approve/reject
+
+add internal notes
+
+mark “needs more information”
+
+resend request to customer
+
+You created the requirements and flow for a compliant internal interface.
+
+5. Stakeholders & Teams
+Compliance & Legal
+
+Primary decision-makers on form content & rules.
+
+Verification Team
+
+Handled manual approvals; depended on clarity of submitted data.
+
+Deloitte (Frontend & Middleware)
+
+Implemented CSF UI and API interactions.
+
+TCS (Backend/Integration)
+
+Built JDE integrations & validation logic.
+
+UX Designers
+
+Helped structure large forms into modules.
+
+QA & UAT Teams
+
+Tested:
+
+multiple states
+
+multiple license types
+
+invalid data
+
+expired licenses
+
+resubmission
+
+internal review flows
+
+Market Teams (US & Canada)
+
+Ensured readiness for future markets:
+
+Canada (controlled substances have different rules)
+
+UK/EU preparation (future GenZ)

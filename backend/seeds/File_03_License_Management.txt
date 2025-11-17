@@ -1,0 +1,354 @@
+FILE 03 — LICENSE_MANAGEMENT_MODULE.txt
+
+(RAG-ready | Clean technical + business detail | No personal content)
+
+LICENSE MANAGEMENT – END-TO-END MODULE BLUEPRINT
+1. Purpose & Business Context
+
+The License Management module ensures that only customers with valid, non-expired DEA and state licenses can order regulated or controlled products.
+The system automates license validation, expiry notifications, compliance prompts, and checkout restrictions across multiple markets (US, CA, UK).
+
+This reduces compliance risk, prevents unauthorized orders, and ensures a smooth workflow for qualified customers.
+
+2. Core Problems Originally Identified
+
+Semi-manual verification caused delays and missed checks.
+
+Expired or invalid licenses allowed orders to proceed due to sync timing issues.
+
+Unexpected checkout blocks with unclear messaging.
+
+Market differences (US/CA vs UK/IE) caused inconsistent behavior.
+
+No automated expiry warnings, leading to order disruption.
+
+No unified attestation logic for high-risk product types.
+
+3. Business Objectives
+
+Automatically enforce compliance at the right step.
+
+Warn users before disruption occurs.
+
+Provide clear, actionable UI messaging.
+
+Respect complex enterprise hierarchies (multiple locations).
+
+Allow market-specific configuration (GenX vs GenY).
+
+Ensure fast, reliable sync of license data with ERP (JDE).
+
+4. Functional Design (Front-End Behaviors)
+4.1 License Status Display
+
+Per-location license status is shown (Active / Expiring Soon / Expired / Not on File).
+
+UI prominently flags issues:
+
+Red → expired
+
+Yellow → expires soon
+
+Green → valid
+
+Location-specific validation ensures the correct license is used for the shipping state.
+
+4.2 Expiry Alerts & Notifications
+
+Automated notifications:
+
+30-Day Reminder
+
+7-Day Reminder
+
+Day-of Expiration Alert
+
+Notifications appear via:
+
+Email
+
+UI messages
+
+Optional future enhancement: In-app/web push alerts
+
+When the license is updated, alerts disappear immediately upon successful validation.
+
+4.3 Checkout Enforcement Rules
+
+Checkout is blocked under conditions:
+
+License expired
+
+License missing for chosen ship-to location
+
+License invalid format
+
+Product requires a different license type than the one provided
+
+Rules vary by product category (e.g., DEA Schedule II vs III vs topical).
+
+Edge case: If a license expires during checkout, the system blocks order placement.
+
+4.4 Attestation Modal
+
+Triggers based on:
+
+License type
+
+Product category
+
+Compliance flags from backend
+
+Examples:
+
+TC1/TC2/TC3 license codes may skip attestation.
+
+High-risk controlled items require acknowledgment text before proceeding.
+
+The modal must:
+
+Not appear unnecessarily
+
+Block checkout if dismissed or not completed
+
+4.5 Inline Validation During Data Entry
+
+Real-time validation for license format (state rules, DEA format).
+
+Immediate error messages near each field.
+
+Disabled “Submit” button until all fields pass validation.
+
+Tooltip explanations for complex fields.
+
+4.6 Role-Based Visibility
+
+Org Admin: Can view/manage all location licenses
+
+Location User: Only sees licenses tied to their own location
+
+Multi-location orgs: System respects parent-child hierarchies
+
+5. Technical Implementation (Backend + Integration)
+5.1 ERP (JDE) Integration
+
+Two-way synchronization:
+
+GEP → JDE
+
+License additions/updates
+
+Attestation acknowledgments
+
+Verification flags
+
+JDE → GEP
+
+Latest license details
+
+License validation status
+
+Backend compliance flags
+
+Approvals needed or bypassed
+
+The integration supports:
+
+Real-time lookups during checkout
+
+Safety mechanisms for timing gaps (e.g., grace periods)
+
+5.2 Data Sync Jobs
+
+Nightly Batch Job
+
+Identifies expiring licenses
+
+Triggers 30/7-day reminders
+
+Performs consistency checks with ERP
+
+Real-Time Sync Hooks
+
+On user update, immediately push to JDE
+
+Update UI state without delay
+
+5.3 Attestation Logic Engine
+
+Engine parameters:
+
+License type
+
+Product type
+
+State-specific rules
+
+Compliance flags from JDE
+
+Market settings (GenX/GenY toggle)
+
+Engine actions:
+
+Trigger modal
+
+Suppress modal
+
+Log acknowledgment
+
+Block checkout if acknowledgment missing
+
+Highly configurable for new markets.
+
+5.4 Cross-Market Configuration
+GenX (UK/IE)
+
+Simplified license flows
+
+Fewer controlled product categories
+
+Attestation often turned off
+
+Minimal DEA/state license checks
+
+GenY (US/CA)
+
+Full controlled-substance workflow
+
+DEA and state-level validations
+
+Attestation required for certain categories
+
+Location-level license mapping mandatory
+
+Future GenZ (EU)
+
+Placeholder in engine for new license types
+
+Ready for medical device & pharma licensing rules
+
+5.5 Edge Case Handling
+
+Examples handled:
+
+License expired mid-session
+
+Backend/JDE returns stale license status
+
+Multiple licenses on file, wrong one selected
+
+Expired license still shown in dropdown (auto-hide implemented)
+
+Licensing change sync delays
+
+All edge cases prioritize compliance over convenience.
+
+6. Data Model Overview
+License Table Fields
+
+License Number
+
+License Type
+
+State / Region
+
+Issuing Authority
+
+Expiration Date
+
+Status (valid/expired/pending verification)
+
+Linked Ship-to Location ID
+
+Attestation Required Flag
+
+Last Verified Timestamp
+
+JDE Verification Sync Token
+
+Attestation Table Fields
+
+Attestation Text ID
+
+License Type
+
+Product Category
+
+Acknowledgment Timestamp
+
+User ID
+
+Order ID (optional)
+
+7. Stakeholders & Dependencies
+Business Stakeholders
+
+Compliance & Regulatory teams
+
+Pharmacy Operations
+
+Verification/back-office teams
+
+Product management leaders
+
+Customer support teams
+
+Technical Stakeholders
+
+Deloitte development team
+
+TCS UK development team
+
+Internal verification team (JDE owners)
+
+UX design team
+
+QA/UAT testers
+
+Reporting/Data services teams
+
+8. Value Delivered
+
+Eliminated unauthorized orders of controlled substances
+
+Reduced manual verification effort
+
+Enabled proactive user actions via early alerts
+
+Improved user experience with clear guidance and error states
+
+Strengthened regulatory compliance posture
+
+Created scalable foundation for future global rollouts
+
+9. Planned Enhancements (Future Roadmap)
+
+Direct license upload by users
+
+Faster verification
+
+Attach PDF/photo for compliance review
+
+Centralized License Center Dashboard
+
+Manage all licenses from one UI
+
+Real-time web notifications
+
+Pop-up alerts for expiring licenses
+
+Consistent with future reporting alert strategy
+
+Integration with DEA/State APIs
+
+Automated external verification
+
+Global expansion
+
+Add support for EU medical device/pharmacy licensing
+
+User feedback loop
+
+Survey post-renewal
+
+Attestation improvements based on customer behavior

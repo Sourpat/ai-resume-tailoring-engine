@@ -1,6 +1,9 @@
+from dotenv import load_dotenv
 from fastapi import FastAPI
 
 from routers import export, tailor, upload
+
+load_dotenv()
 
 app = FastAPI(title="AI Resume Tailoring Engine")
 

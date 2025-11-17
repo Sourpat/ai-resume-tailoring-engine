@@ -1,0 +1,71 @@
+01_Executive_Summary_PO_BA.txt
+Executive Summary – Product Owner & Business Analyst (GEP Program)
+
+As a Product Owner and Business Analyst on Henry Schein’s Global E-Commerce Platform (GEP), the role focused on delivering regulated, high-impact features across the US, Canada, and UK markets. Responsibilities included shaping ambiguous business needs into precise user stories, detailed functional designs, and acceptance criteria; coordinating with cross-functional teams; and ensuring compliance with stringent regulatory and operational requirements.
+
+The scope of ownership ranged from core checkout controls to complex modules such as License Management, Budget Management, Multi-Tier Approvals, Controlled Substance Forms, Statements & Payments, Profile & Preferences, Reporting, and Barcode Scanning. Work spanned across all phases of delivery:
+
+Requirements discovery & SME alignment
+
+Functional and technical design
+
+Cross-team collaboration (Deloitte, TCS, BST, UX, Compliance, QA, DevOps)
+
+Backlog prioritization & change request (CR) management
+
+UAT planning, execution, defect triage, and stakeholder reviews
+
+Market-specific configuration (GenX UK, GenY US/CA, future GenZ expansion)
+
+The role required translating regulatory constraints (e.g., DEA, TDDD, state-level restrictions) and enterprise purchasing policies (budgets, approvals, payment controls) into scalable, reusable, and market-configurable platform features.
+
+Key Responsibilities Across All Modules
+1. Requirements & Design Leadership
+
+Converted ambiguous business goals into detailed workflows, user stories, and ACs.
+
+Created functional designs for complex modules with edge-case coverage.
+
+Led design walkthroughs with UX, Dev, QA, SMEs, Compliance, and other stakeholders.
+
+2. Regulatory & Compliance Alignment
+
+Ensured online workflows satisfied DEA regulations, state-level licensing rules, and pharmacy compliance protocols.
+
+Documented and validated compliance steps (attestations, license validation, form rules).
+
+3. Cross-Functional Program Coordination
+
+Worked daily with Deloitte (front-end & integration), TCS (GenX/GenY engineering), BST, and internal architects.
+
+Facilitated alignment across Product, Compliance, Sales Ops, Customer Support, UX, and Data teams.
+
+4. End-to-End Delivery & Quality Assurance
+
+Prioritized backlogs for multiple feature streams.
+
+Led sprint grooming, story refinement, CR assessment, and release planning.
+
+Coordinated UAT end-to-end with QA: test planning, scenario creation, triage, and approvals.
+
+5. Market Rollout Planning
+
+Tailored functionality per market:
+
+GenX (UK/IE) – simplified controlled substance rules, lighter approval logic, different payment norms.
+
+GenY (US/CA) – strict DEA workflows, robust budgets/approvals, complex Statements & Payments rules.
+
+Prepared features for future GenZ expansion (EU/other regions).
+
+6. Stakeholder Management
+
+Acted as the primary liaison between business SMEs, regulatory/legal teams, engineering, and external development vendors.
+
+Ensured clarity on business rules and provided guidance during architectural discussions.
+
+Role Impact
+
+The work delivered significant improvements to GEP’s compliance posture, checkout reliability, and customer experience—especially for regulated products, enterprise accounts, and high-value orders. Modules built under this role became foundational to the platform’s ability to expand globally while meeting local regulatory standards.
+
+The combination of regulatory understanding, UX-aware design, and system-level technical reasoning established scalable patterns for future feature development within GEP.

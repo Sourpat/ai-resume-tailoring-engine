@@ -55,6 +55,6 @@ class AgentOrchestrator:
             self.logger.log_error(f"Pipeline failed: {str(e)}")
             return {
                 "error": True,
-                "message": "Pipeline failed",
+                "message": "Pipeline failed internally.",
                 "details": str(e)
             }

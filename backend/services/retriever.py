@@ -1,6 +1,5 @@
 # backend/services/retriever.py
 
-import os
 from pathlib import Path
 from typing import List
 from openai import OpenAI
@@ -15,7 +14,8 @@ BASE_DIR = Path(__file__).resolve().parents[2]
 SEED_DIR = BASE_DIR / "backend" / "seeds"
 SEED_DIR.mkdir(parents=True, exist_ok=True)
 print("Resolved SEED_DIR:", SEED_DIR)
-VECTOR_STORE_PATH = BASE_DIR / "backend" / "vector_store"
+VECTOR_STORE_DIR = BASE_DIR / "backend" / "vector_store"
+INDEX_PATH = VECTOR_STORE_DIR / "index.json"
 
 class Retriever:
     @staticmethod
@@ -45,44 +45,70 @@ class Retriever:
     def rebuild_vector_store():
         print("Rebuilding vector store...")
 
-        VECTOR_STORE_PATH.mkdir(exist_ok=True)
-        store_file = VECTOR_STORE_PATH / "seed_vectors.json"
-        seed_docs = Retriever.load_seed_documents()
+        VECTOR_STORE_DIR.mkdir(parents=True, exist_ok=True)
 
-        vectors = []
-        for doc in seed_docs:
-            embedding = Retriever.embed_text(doc["content"])
-            vectors.append({
-                "filename": doc["filename"],
-                "embedding": embedding,
-                "content": doc["content"]
+        index = []
+        for path in sorted(SEED_DIR.glob("*.txt")):
+            text = path.read_text(encoding="utf-8")
+            if len(text) < 5:
+                continue
+
+            print("Embedding file:", path.name)
+            embedding = client.embeddings.create(
+                model="text-embedding-3-large",
+                input=text
+            )
+            print("Embedding length:", len(embedding.data[0].embedding))
+
+            index.append({
+                "file": path.name,
+                "content": text,
+                "embedding": embedding.data[0].embedding
             })
 
-        with open(store_file, "w", encoding="utf-8") as f:
-            json.dump(vectors, f, indent=2)
+        with open(INDEX_PATH, "w", encoding="utf-8") as f:
+            json.dump(index, f, indent=2)
 
-        print("Vector store updated successfully.")
+        print(f"Vector store built with {len(index)} items")
+
+    @staticmethod
+    def load_index() -> List[dict]:
+        if not INDEX_PATH.exists():
+            return []
+
+        try:
+            with open(INDEX_PATH, "r", encoding="utf-8") as f:
+                data = json.load(f)
+                if isinstance(data, list):
+                    return data
+        except (json.JSONDecodeError, OSError):
+            return []
+
+        return []
 
     @staticmethod
     def search(query: str):
-        store_file = VECTOR_STORE_PATH / "seed_vectors.json"
-        if not store_file.exists():
+        vectors = Retriever.load_index()
+        if not vectors:
             return []
-
-        with open(store_file, "r", encoding="utf-8") as f:
-            vectors = json.load(f)
 
         query_vector = Retriever.embed_text(query)
 
         def cosine_similarity(a, b):
+            if not a or not b:
+                return 0
+
             dot = sum(x * y for x, y in zip(a, b))
             norm_a = sum(x * x for x in a) ** 0.5
             norm_b = sum(x * x for x in b) ** 0.5
+            if norm_a == 0 or norm_b == 0:
+                return 0
+
             return dot / (norm_a * norm_b)
 
         ranked = sorted(
             vectors,
-            key=lambda x: cosine_similarity(query_vector, x["embedding"]),
+            key=lambda x: cosine_similarity(query_vector, x.get("embedding", [])),
             reverse=True,
         )
         return ranked[:5]

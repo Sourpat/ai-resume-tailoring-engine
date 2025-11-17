@@ -1,0 +1,18 @@
+Goal: Generate tailored resume bullet points for 3 roles:
+- Product Owner – Henry Schein
+- Business Analyst – Henry Schein
+- Technical BA – AXA XL (RPA)
+
+Output Format:
+{
+  "product_owner_section": [],
+  "business_analyst_section": [],
+  "technical_ba_section": []
+}
+
+Rules:
+- Use action + impact format.
+- Must map bullets to JD requirements.
+- Do NOT format for ATS (that's the next agent).
+- Avoid repeated phrasing.
+- Keep bullets crisp and professional.

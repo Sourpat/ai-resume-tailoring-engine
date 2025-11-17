@@ -1,0 +1,17 @@
+Goal: Retrieve the most relevant seeds from the vector database based on the JD Analyzer output.
+
+Expected Input:
+- JD analysis JSON
+- Query vector(s)
+
+Expected Output:
+{
+  "retrieved_seeds": [
+      { "role": "", "content": "" },
+      ...
+  ]
+}
+
+Rules:
+- Remove duplicates.
+- Return seeds grouped by role (PO, BA, Technical BA).

@@ -1,0 +1,16 @@
+Goal: Refine and ATS-optimize the generated resume bullets.
+
+Output Format:
+{
+  "formatted_po": [],
+  "formatted_ba": [],
+  "formatted_technical_ba": [],
+  "keyword_density_score": "",
+  "final_recommendations": []
+}
+
+Rules:
+- Ensure strong verbs.
+- Ensure measurable outcomes where possible.
+- Insert relevant JD keywords.
+- Avoid overstuffing.

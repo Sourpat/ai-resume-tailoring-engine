@@ -1,17 +1,13 @@
 from fastapi import APIRouter
 
-# Correct relative imports
-from ..services.vector_builder import rebuild_vector_store
-from ..services.rag_service import load_in_memory_store
+# ABSOLUTE imports from backend package (Render compatible)
+from backend.services.vector_builder import rebuild_vector_store
+from backend.services.rag_service import load_in_memory_store
 
 router = APIRouter(prefix="/admin", tags=["Admin"])
 
-
 @router.post("/rebuild-vector-store")
 async def rebuild_vector_store_handler():
-    """
-    Rebuild vector store on disk and reload memory store.
-    """
     try:
         rebuild_vector_store()
         load_in_memory_store()

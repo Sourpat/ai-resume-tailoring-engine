@@ -1,9 +1,18 @@
 from fastapi import APIRouter
-from services.retriever import Retriever
+from backend.services.vector_builder import rebuild_vector_store
+from backend.services.vector_store import load_in_memory_store
 
-router = APIRouter()
+router = APIRouter(prefix="/admin", tags=["Admin"])
 
-@router.post("/admin/rebuild-vector-store")
-def rebuild_vector_store():
-    Retriever.rebuild_vector_store()
-    return {"status": "Vector store rebuilt successfully"}
+
+@router.post("/rebuild-vector-store")
+async def rebuild_vector_store_handler():
+    """
+    Rebuilds the vector store and reloads it into memory.
+    """
+    try:
+        rebuild_vector_store()          # writes vectors.json
+        load_in_memory_store()          # loads into RAM
+        return {"status": "Vector store rebuilt successfully"}
+    except Exception as e:
+        return {"error": str(e)}

@@ -1,6 +1,6 @@
 import base64
 
-from services.export_service import ExportService
+from backend.services.export_service import ExportService
 
 
 class ExportAgent:

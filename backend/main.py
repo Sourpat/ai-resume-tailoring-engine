@@ -4,9 +4,9 @@ from dotenv import load_dotenv
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 
-from routers import admin, debug, debug_ingest, export, tailor, test_routes, upload
-from vector_store.ingest import build_initial_vector_store
-from services.retriever import Retriever
+from backend.routers import admin, debug, debug_ingest, export, tailor, test_routes, upload
+from backend.vector_store.ingest import build_initial_vector_store
+from backend.services.retriever import Retriever
 
 load_dotenv()
 

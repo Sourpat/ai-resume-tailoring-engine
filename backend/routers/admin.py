@@ -1,6 +1,5 @@
 from fastapi import APIRouter
 
-# ABSOLUTE imports from backend package (Render compatible)
 from backend.services.vector_builder import rebuild_vector_store
 from backend.services.rag_service import load_in_memory_store
 

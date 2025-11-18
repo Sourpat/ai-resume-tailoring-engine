@@ -24,6 +24,8 @@ logger = logging.getLogger(__name__)
 
 app = FastAPI(title="AI Resume Tailoring Engine")
 
+# Explicitly register all routers so routes are discoverable in production
+# environments like Render where the working directory may differ.
 app.include_router(upload.router)
 app.include_router(tailor.router)
 app.include_router(export.router)

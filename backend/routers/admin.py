@@ -6,6 +6,7 @@ router = APIRouter(prefix="/admin", tags=["Admin"])
 
 @router.post("/rebuild-vector-store")
 async def rebuild_vector_store_handler():
+    """Rebuild and reload the vector store used by the retrieval pipeline."""
     try:
         Retriever.rebuild_vector_store()
         Retriever.load_vector_store()

@@ -1,6 +1,3 @@
-import json
-from pathlib import Path
-
 from fastapi import APIRouter, Query
 
 from services.agent_orchestrator import AgentOrchestrator
@@ -9,24 +6,15 @@ from services.retriever import Retriever
 
 router = APIRouter()
 logger = LoggingService()
-TEST_VECTOR_PATH = Path(__file__).resolve().parent.parent / "vector_store" / "vectors.json"
 
 
 @router.get("/rag-test")
 async def rag_test(query: str = Query("", description="Query text for RAG test")):
     try:
         logger.log_info("Running RAG test retrieval")
-
-        if not TEST_VECTOR_PATH.exists():
-            logger.log_error(f"Vector store not found at {TEST_VECTOR_PATH}")
-            return {"matches": []}
-
-        with open(TEST_VECTOR_PATH, "r", encoding="utf-8") as file:
-            vector_data = json.load(file)
-
-        result = Retriever.debug_retrieve(query, vector_data)
-        logger.log_debug(f"RAG test matches: {result}")
-        return result
+        matches = Retriever.search(query)
+        logger.log_debug(f"RAG test matches: {matches}")
+        return {"matches": matches}
     except Exception as exc:  # pragma: no cover - defensive
         logger.log_error(f"RAG test failed: {exc}")
         return {"matches": []}

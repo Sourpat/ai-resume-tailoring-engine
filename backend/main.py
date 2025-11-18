@@ -6,6 +6,7 @@ from fastapi.responses import JSONResponse
 
 from routers import admin, debug, debug_ingest, export, tailor, test_routes, upload
 from vector_store.ingest import build_initial_vector_store
+from services.retriever import Retriever
 
 load_dotenv()
 
@@ -28,6 +29,8 @@ async def startup_event():
     try:
         print("Running vector store ingestion...")
         build_initial_vector_store()
+        print("Loading in-memory vector store...")
+        Retriever.load_vector_store()
         print("Vector store initialized successfully.")
     except Exception as e:
         print("ERROR: Vector store failed to initialize:", e)

@@ -1,32 +1,32 @@
+import json
+from pathlib import Path
+
 from fastapi import APIRouter, Query
 
 from services.agent_orchestrator import AgentOrchestrator
-from services.embedding_service import EmbeddingService
 from services.logging_service import LoggingService
-from vector_store.connectors import VectorDBConnector
+from services.retriever import Retriever
 
 router = APIRouter()
 logger = LoggingService()
-embedding_service = EmbeddingService()
-vector_db = VectorDBConnector()
+TEST_VECTOR_PATH = Path(__file__).resolve().parent.parent / "vector_store" / "vectors.json"
 
 
 @router.get("/rag-test")
 async def rag_test(query: str = Query("", description="Query text for RAG test")):
     try:
         logger.log_info("Running RAG test retrieval")
-        query_embedding = embedding_service.embed_text(query)
-        results = vector_db.query_vectors(query_embedding, top_k=5)
-        matches = [
-            {
-                "content": item.get("content"),
-                "role": item.get("role"),
-                "similarity": item.get("similarity", 0.0),
-            }
-            for item in results
-        ]
-        logger.log_debug(f"RAG test matches: {matches}")
-        return {"matches": matches}
+
+        if not TEST_VECTOR_PATH.exists():
+            logger.log_error(f"Vector store not found at {TEST_VECTOR_PATH}")
+            return {"matches": []}
+
+        with open(TEST_VECTOR_PATH, "r", encoding="utf-8") as file:
+            vector_data = json.load(file)
+
+        result = Retriever.debug_retrieve(query, vector_data)
+        logger.log_debug(f"RAG test matches: {result}")
+        return result
     except Exception as exc:  # pragma: no cover - defensive
         logger.log_error(f"RAG test failed: {exc}")
         return {"matches": []}

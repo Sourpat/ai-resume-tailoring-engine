@@ -1,7 +1,7 @@
 # backend/services/retriever.py
 
 from pathlib import Path
-from typing import List
+from typing import Any, List
 from openai import OpenAI
 from dotenv import load_dotenv
 import json
@@ -136,3 +136,57 @@ class Retriever:
 
         ranked.sort(key=lambda x: x["similarity"], reverse=True)
         return ranked[:5]
+
+    @staticmethod
+    def debug_retrieve(query: str, vector_data: Any) -> dict:
+        """
+        Retrieve the most similar vectors from a preloaded vector store for debugging.
+
+        Parameters
+        ----------
+        query: str
+            The input query text.
+        vector_data: Any
+            Parsed JSON data representing the vector store. Expected to be either a
+            list of vector entries or a dictionary containing a "vectors" key.
+        """
+
+        if isinstance(vector_data, dict):
+            vectors = vector_data.get("vectors", [])
+        elif isinstance(vector_data, list):
+            vectors = vector_data
+        else:
+            vectors = []
+
+        if not vectors:
+            return {"matches": []}
+
+        query_vector = Retriever.embed_text(query)
+
+        def cosine_similarity(a, b):
+            if not a or not b:
+                return 0
+
+            dot = sum(x * y for x, y in zip(a, b))
+            norm_a = sum(x * x for x in a) ** 0.5
+            norm_b = sum(x * x for x in b) ** 0.5
+            if norm_a == 0 or norm_b == 0:
+                return 0
+
+            return dot / (norm_a * norm_b)
+
+        ranked = []
+        for item in vectors:
+            embedding = item.get("embedding", []) if isinstance(item, dict) else []
+            if not embedding:
+                continue
+
+            similarity = cosine_similarity(query_vector, embedding)
+            ranked.append({
+                "content": item.get("content"),
+                "role": item.get("role"),
+                "similarity": similarity,
+            })
+
+        ranked.sort(key=lambda x: x.get("similarity", 0), reverse=True)
+        return {"matches": ranked[:5]}

@@ -2,18 +2,24 @@ from pathlib import Path
 from typing import List
 
 from backend.services.logging_service import LoggingService
-
 from .connectors import VectorDBConnector
 
+logger = LoggingService()
 
+# NOTE: Do NOT run mkdir or prints at import time
 BASE_DIR = Path(__file__).resolve().parents[2]
 SEED_DIR = BASE_DIR / "backend" / "seeds"
-SEED_DIR.mkdir(parents=True, exist_ok=True)
-print("Resolved SEED_DIR:", SEED_DIR)
-logger = LoggingService()
+
+
+def ensure_seed_dir():
+    """Create seed directory safely during runtime."""
+    SEED_DIR.mkdir(parents=True, exist_ok=True)
+    return SEED_DIR
 
 
 def load_seed_documents() -> List[str]:
+    ensure_seed_dir()
+
     docs: List[str] = []
     if not SEED_DIR.exists():
         logger.log_error(f"Seed directory not found: {SEED_DIR}")
@@ -27,13 +33,15 @@ def load_seed_documents() -> List[str]:
                 logger.log_error(f"Seed file {seed_file} is empty; skipping")
                 continue
             docs.append(content)
-        except OSError as exc:  # pragma: no cover - defensive
+        except OSError as exc:
             logger.log_error(f"Failed to read seed file {seed_file}: {exc}")
     return docs
 
 
 def build_initial_vector_store() -> VectorDBConnector:
     """Populate a local vector store from seed files."""
+    ensure_seed_dir()
+
     connector = VectorDBConnector()
     docs = load_seed_documents()
     if not docs:
@@ -44,7 +52,3 @@ def build_initial_vector_store() -> VectorDBConnector:
     connector.save_local_db()
     logger.log_info(f"Vector store built with {len(connector.vectors)} items.")
     return connector
-
-
-if __name__ == "__main__":
-    build_initial_vector_store()

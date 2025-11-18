@@ -16,7 +16,8 @@ SEED_DIR = BASE_DIR / "backend" / "seeds"
 SEED_DIR.mkdir(parents=True, exist_ok=True)
 print("Resolved SEED_DIR:", SEED_DIR)
 VECTOR_STORE_DIR = BASE_DIR / "backend" / "vector_store"
-INDEX_PATH = VECTOR_STORE_DIR / "index.json"
+VECTOR_STORE_PATH = VECTOR_STORE_DIR / "vectors.json"
+vector_store = None
 
 class Retriever:
     @staticmethod
@@ -67,9 +68,9 @@ class Retriever:
         VECTOR_STORE_DIR.mkdir(parents=True, exist_ok=True)
         logging.info("Vector store directory resolved to: %s", VECTOR_STORE_DIR)
 
-        if INDEX_PATH.exists():
-            logging.info("Removing old vector store file: %s", INDEX_PATH)
-            INDEX_PATH.unlink()
+        if VECTOR_STORE_PATH.exists():
+            logging.info("Removing old vector store file: %s", VECTOR_STORE_PATH)
+            VECTOR_STORE_PATH.unlink()
 
         index = []
         total_chunks = 0
@@ -91,32 +92,54 @@ class Retriever:
                     "embedding": embedding,
                 })
 
-        with open(INDEX_PATH, "w", encoding="utf-8") as f:
-            json.dump(index, f, indent=2)
+        global vector_store
+        vector_store = {"vectors": index}
+
+        with open(VECTOR_STORE_PATH, "w", encoding="utf-8") as f:
+            json.dump(vector_store, f, indent=2)
 
         logging.info("Total chunks stored: %d", total_chunks)
         logging.info("Vector store built with %d items", len(index))
 
     @staticmethod
-    def load_index() -> List[dict]:
-        if not INDEX_PATH.exists():
-            return []
+    def load_vector_store() -> dict:
+        global vector_store
+
+        VECTOR_STORE_DIR.mkdir(parents=True, exist_ok=True)
+
+        def rebuild_with_warning(message: str):
+            logging.warning(message)
+            Retriever.rebuild_vector_store()
+
+        if not VECTOR_STORE_PATH.exists() or VECTOR_STORE_PATH.stat().st_size == 0:
+            rebuild_with_warning("Vector store file missing or empty; rebuilding vector store.")
+            return vector_store
 
         try:
-            with open(INDEX_PATH, "r", encoding="utf-8") as f:
+            with open(VECTOR_STORE_PATH, "r", encoding="utf-8") as f:
                 data = json.load(f)
-                if isinstance(data, list):
-                    return data
-        except (json.JSONDecodeError, OSError):
-            return []
+        except (json.JSONDecodeError, OSError) as exc:
+            rebuild_with_warning(f"Failed to load vector store ({exc}); rebuilding vector store.")
+            return vector_store
 
-        return []
+        if isinstance(data, dict) and data.get("vectors"):
+            vector_store = data
+        elif isinstance(data, list) and data:
+            vector_store = {"vectors": data}
+        else:
+            rebuild_with_warning("Vector store file contained no vectors; rebuilding vector store.")
+
+        if vector_store is None:
+            rebuild_with_warning("Vector store not initialized; rebuilding vector store.")
+
+        return vector_store
 
     @staticmethod
     def search(query: str):
-        vectors = Retriever.load_index()
-        if not vectors:
-            return []
+        global vector_store
+
+        if vector_store is None:
+            Retriever.load_vector_store()
 
         query_vector = Retriever.embed_text(query)
 
@@ -132,6 +155,7 @@ class Retriever:
 
             return dot / (norm_a * norm_b)
 
+        vectors = (vector_store or {}).get("vectors", [])
         ranked = []
         for item in vectors:
             similarity = cosine_similarity(query_vector, item.get("embedding", []))

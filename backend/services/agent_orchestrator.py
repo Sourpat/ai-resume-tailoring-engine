@@ -1,8 +1,8 @@
-from agents.ats_formatter import ATSFormatterAgent
-from agents.export_agent import ExportAgent
-from agents.jd_analyzer import JdAnalyzerAgent
-from agents.rag_retriever import RagRetrieverAgent
-from agents.tailoring_engine import TailoringEngineAgent
+from backend.agents.ats_formatter import ATSFormatterAgent
+from backend.agents.export_agent import ExportAgent
+from backend.agents.jd_analyzer import JdAnalyzerAgent
+from backend.agents.rag_retriever import RagRetrieverAgent
+from backend.agents.tailoring_engine import TailoringEngineAgent
 from backend.services.logging_service import LoggingService
 
 

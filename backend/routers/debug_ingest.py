@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 
-from vector_store.ingest import SEED_DIR
+from backend.vector_store.ingest import SEED_DIR
 
 
 router = APIRouter()

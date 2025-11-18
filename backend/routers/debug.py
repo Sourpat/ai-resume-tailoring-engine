@@ -2,9 +2,9 @@ from pathlib import Path
 
 from fastapi import APIRouter
 
-from services.logging_service import LoggingService
-from vector_store.connectors import VectorDBConnector
-from vector_store.ingest import SEED_DIR
+from backend.services.logging_service import LoggingService
+from backend.vector_store.connectors import VectorDBConnector
+from backend.vector_store.ingest import SEED_DIR
 
 
 router = APIRouter()

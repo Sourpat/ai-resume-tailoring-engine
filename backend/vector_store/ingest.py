@@ -1,7 +1,7 @@
 from pathlib import Path
 from typing import List
 
-from services.logging_service import LoggingService
+from backend.services.logging_service import LoggingService
 
 from .connectors import VectorDBConnector
 

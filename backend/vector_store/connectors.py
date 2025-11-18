@@ -2,7 +2,7 @@ import json
 import os
 from typing import Any, Dict, List, Optional
 
-from services.embedding_service import EmbeddingService
+from backend.services.embedding_service import EmbeddingService
 
 import numpy as np
 

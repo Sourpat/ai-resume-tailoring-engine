@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Query
 
-from services.agent_orchestrator import AgentOrchestrator
-from services.logging_service import LoggingService
-from services.retriever import Retriever
+from backend.services.agent_orchestrator import AgentOrchestrator
+from backend.services.logging_service import LoggingService
+from backend.services.retriever import Retriever
 
 router = APIRouter()
 logger = LoggingService()

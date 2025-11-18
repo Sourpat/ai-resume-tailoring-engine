@@ -1,7 +1,6 @@
 from fastapi import APIRouter
 
-# Use imports relative to the backend package root so uvicorn main:app
-# executed from the backend directory can resolve modules correctly.
+# Correct imports for Render directory structure
 from services.vector_builder import rebuild_vector_store
 from services.rag_service import load_in_memory_store
 

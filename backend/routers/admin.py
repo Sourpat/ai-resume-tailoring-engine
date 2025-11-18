@@ -1,8 +1,8 @@
 from fastapi import APIRouter
 
-# Correct absolute imports for Render + FastAPI
-from backend.services.vector_builder import rebuild_vector_store
-from backend.services.vector_store import load_in_memory_store
+# Correct relative imports
+from ..services.vector_builder import rebuild_vector_store
+from ..services.rag_service import load_in_memory_store
 
 router = APIRouter(prefix="/admin", tags=["Admin"])
 

@@ -1,8 +1,9 @@
 from fastapi import APIRouter
 
-# ABSOLUTE imports from backend package (Render compatible)
-from backend.services.vector_builder import rebuild_vector_store
-from backend.services.rag_service import load_in_memory_store
+# Use imports relative to the backend package root so uvicorn main:app
+# executed from the backend directory can resolve modules correctly.
+from services.vector_builder import rebuild_vector_store
+from services.rag_service import load_in_memory_store
 
 router = APIRouter(prefix="/admin", tags=["Admin"])
 

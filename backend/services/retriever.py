@@ -5,6 +5,7 @@ from typing import Any, List
 from openai import OpenAI
 from dotenv import load_dotenv
 import json
+import logging
 
 load_dotenv()
 
@@ -48,7 +49,7 @@ class Retriever:
     def load_seed_documents() -> List[dict]:
         documents = []
         for file in sorted(SEED_DIR.glob("*.txt")):
-            print("Ingesting seed file:", file.name)
+            logging.info("Ingesting seed file: %s", file.name)
             with open(file, "r", encoding="utf-8") as f:
                 content = f.read()
                 if not content:
@@ -61,9 +62,14 @@ class Retriever:
 
     @staticmethod
     def rebuild_vector_store():
-        print("Rebuilding vector store...")
+        logging.info("Rebuilding vector store...")
 
         VECTOR_STORE_DIR.mkdir(parents=True, exist_ok=True)
+        logging.info("Vector store directory resolved to: %s", VECTOR_STORE_DIR)
+
+        if INDEX_PATH.exists():
+            logging.info("Removing old vector store file: %s", INDEX_PATH)
+            INDEX_PATH.unlink()
 
         index = []
         total_chunks = 0
@@ -73,7 +79,7 @@ class Retriever:
                 continue
 
             chunks = Retriever.chunk_text(text)
-            print(f"Embedding file: {path.name} -> {len(chunks)} chunks")
+            logging.info("Embedding file %s into %d chunks", path.name, len(chunks))
             total_chunks += len(chunks)
 
             for chunk_index, chunk_text in enumerate(chunks):
@@ -88,8 +94,8 @@ class Retriever:
         with open(INDEX_PATH, "w", encoding="utf-8") as f:
             json.dump(index, f, indent=2)
 
-        print(f"Total chunks stored: {total_chunks}")
-        print(f"Vector store built with {len(index)} items")
+        logging.info("Total chunks stored: %d", total_chunks)
+        logging.info("Vector store built with %d items", len(index))
 
     @staticmethod
     def load_index() -> List[dict]:
